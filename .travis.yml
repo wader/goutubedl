@@ -1,0 +1,10 @@
+sudo: required
+services:
+  - docker
+
+language: go
+go:
+  - "1.12"
+
+# a bit strange but want to reuse the test Dockerfile
+script: docker build --build-arg GO_VERSION=$(go version | cut -d' ' -f 3 | cut -b 3-) .
