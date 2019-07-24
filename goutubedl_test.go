@@ -1,6 +1,6 @@
 package goutubedl
 
-// TOOD: currently the tests only run on linux as they use osleaktest which only
+// TODO: currently the tests only run on linux as they use osleaktest which only
 // has linux support
 
 import (
