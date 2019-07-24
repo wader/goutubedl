@@ -2,7 +2,7 @@
 
 Go wrapper for [youtube-dl](https://github.com/ytdl-org/youtube-dl).
 
-[API Documentation](https://godoc.org/github.com/wader/goutubedl) can be found at godoc.
+Online [API documentation](https://godoc.org/github.com/wader/goutubedl) can be found at godoc.org.
 
 See [youtube-dl documentation](https://github.com/ytdl-org/youtube-dl#do-i-need-any-other-programs)
 for what is recommended to install in addition to youtube-dl.
