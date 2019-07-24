@@ -13,7 +13,7 @@ for what is recommended to install in addition to youtube-dl.
 result, err := goutubedl.New(context.Background(), URL, goutubedl.Options{})
 downloadResult, err := result.Download(context.Background(), FormatID)
 io.Copy(ioutil.Discard, downloadResult)
-dr.Close()
+downloadResult.Close()
 ```
 
 See [goutubedl cmd tool](cmd/goutubedl/main.go) or [ydls](https://github.com/wader/ydls)
