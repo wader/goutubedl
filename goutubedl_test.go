@@ -45,7 +45,7 @@ func TestBinaryNotPath(t *testing.T) {
 func TestVersion(t *testing.T) {
 	defer leakChecks(t)()
 
-	versionRe := regexp.MustCompile(`^\d{4}\.\d{2}.\d{2}$`)
+	versionRe := regexp.MustCompile(`^\d{4}\.\d{2}.\d{2}.*$`)
 	version, versionErr := Version(context.Background())
 
 	if versionErr != nil {
@@ -53,7 +53,7 @@ func TestVersion(t *testing.T) {
 	}
 
 	if !versionRe.MatchString(version) {
-		t.Errorf("version %q does match %q", version, versionRe)
+		t.Errorf("version %q does not match %q", version, versionRe)
 	}
 }
 
