@@ -181,6 +181,26 @@ func TestPlaylist(t *testing.T) {
 	}
 }
 
+func TestPlaylistWithPrivateVideo(t *testing.T) {
+	defer leaktest.Check(t)()
+
+	playlistRawURL := "https://www.youtube.com/playlist?list=PLX0g748fkegS54oiDN4AXKl7BR7mLIydP"
+	ydlResult, ydlResultErr := New(context.Background(), playlistRawURL, Options{
+		YesPlaylist:       true,
+		DownloadThumbnail: false,
+	})
+
+	if ydlResultErr != nil {
+		t.Errorf("failed to download: %s", ydlResultErr)
+	}
+
+	expectedLen := 2
+	actualLen := len(ydlResult.Info.Entries)
+	if expectedLen != actualLen {
+		t.Errorf("expected len %d got %d", expectedLen, actualLen)
+	}
+}
+
 func TestPlaylistBadURL(t *testing.T) {
 	defer leakChecks(t)()
 

@@ -217,6 +217,7 @@ func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info
 		Path,
 		"--no-call-home",
 		"--no-cache-dir",
+		"--ignore-errors",
 		"--skip-download",
 		"--restrict-filenames",
 		// provide URL via stdin for security, youtube-dl has some run command args
@@ -275,10 +276,14 @@ func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info
 		}
 	}
 
-	if errMessage != "" {
-		return Info{}, nil, Error(errMessage)
-	} else if cmdErr != nil {
-		return Info{}, nil, cmdErr
+	// HACK: --ignore-errors still return error message and exit code != 0
+	// so workaround is to assume things went ok if we get some json on stdout
+	if len(stdoutBuf.Bytes()) == 0 {
+		if errMessage != "" {
+			return Info{}, nil, Error(errMessage)
+		} else if cmdErr != nil {
+			return Info{}, nil, cmdErr
+		}
 	}
 
 	if infoErr := json.Unmarshal(stdoutBuf.Bytes(), &info); infoErr != nil {
@@ -316,6 +321,18 @@ func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info
 				}
 			}
 		}
+	}
+
+	// as we ignore errors some entries might show up as null
+	if options.YesPlaylist {
+		var filteredEntrise []Info
+		for _, e := range info.Entries {
+			if e.ID == "" {
+				continue
+			}
+			filteredEntrise = append(filteredEntrise, e)
+		}
+		info.Entries = filteredEntrise
 	}
 
 	return info, stdoutBuf.Bytes(), nil
