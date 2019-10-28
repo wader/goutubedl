@@ -109,7 +109,8 @@ type Info struct {
 	Description string `json:"description"`
 	Thumbnail   string `json:"thumbnail"`
 	// not unmarshalled, populated from image thumbnail file
-	ThumbnailBytes []byte `json:"-"`
+	ThumbnailBytes []byte      `json:"-"`
+	Thumbnails     []Thumbnail `json:"thumbnails"`
 
 	Formats   []Format              `json:"formats"`
 	Subtitles map[string][]Subtitle `json:"subtitles"`
@@ -119,6 +120,15 @@ type Info struct {
 
 	// Info can also be a mix of Info and one Format
 	Format
+}
+
+type Thumbnail struct {
+	ID         string `json:"id"`
+	URL        string `json:"url"`
+	Preference int    `json:"preference"`
+	Width      int    `json:"width"`
+	Height     int    `json:"height"`
+	Resolution string `json:"resolution"`
 }
 
 // Format youtube-dl downloadable format
