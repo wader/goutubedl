@@ -1,7 +1,9 @@
-ARG GO_VERSION=1.13
-ARG YDL_VERSION=2019.09.12.1
+# bump: golang /GOLANG_VERSION=([\d.]+)/ docker:golang|^1
+ARG GOLANG_VERSION=1.13.3
+# bump: youtube-dl /YDL_VERSION=([\d.]+)/ https://github.com/ytdl-org/youtube-dl.git|/^\d/|sort
+ARG YDL_VERSION=2019.10.29
 
-FROM golang:$GO_VERSION
+FROM golang:$GOLANG_VERSION
 ARG YDL_VERSION
 
 RUN \
