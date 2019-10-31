@@ -12,12 +12,14 @@ import (
 )
 
 var dumpFlag = flag.Bool("J", false, "Dump JSON")
+var typeFlag = flag.String("t", "any", "Type")
 
 func main() {
 	log.SetFlags(0)
 	flag.Parse()
 
-	result, err := goutubedl.New(context.Background(), flag.Arg(0), goutubedl.Options{})
+	optType, _ := goutubedl.TypeFromString[*typeFlag]
+	result, err := goutubedl.New(context.Background(), flag.Arg(0), goutubedl.Options{Type: optType})
 	if err != nil {
 		log.Fatal(err)
 	}

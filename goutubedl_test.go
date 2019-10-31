@@ -157,7 +157,7 @@ func TestPlaylist(t *testing.T) {
 	defer leakChecks(t)()
 
 	ydlResult, ydlResultErr := New(context.Background(), playlistRawURL, Options{
-		YesPlaylist:       true,
+		Type:              TypePlaylist,
 		DownloadThumbnail: false,
 	})
 
@@ -186,7 +186,7 @@ func TestPlaylistWithPrivateVideo(t *testing.T) {
 
 	playlistRawURL := "https://www.youtube.com/playlist?list=PLX0g748fkegS54oiDN4AXKl7BR7mLIydP"
 	ydlResult, ydlResultErr := New(context.Background(), playlistRawURL, Options{
-		YesPlaylist:       true,
+		Type:              TypePlaylist,
 		DownloadThumbnail: false,
 	})
 
@@ -198,20 +198,6 @@ func TestPlaylistWithPrivateVideo(t *testing.T) {
 	actualLen := len(ydlResult.Info.Entries)
 	if expectedLen != actualLen {
 		t.Errorf("expected len %d got %d", expectedLen, actualLen)
-	}
-}
-
-func TestPlaylistBadURL(t *testing.T) {
-	defer leakChecks(t)()
-
-	// using a non-playlist url
-	_, ydlResultErr := New(context.Background(), testVideoRawURL, Options{
-		YesPlaylist:       true,
-		DownloadThumbnail: false,
-	})
-
-	if ydlResultErr == nil {
-		t.Error("expected error")
 	}
 }
 
@@ -244,5 +230,25 @@ func TestSubtitles(t *testing.T) {
 				t.Errorf("%s: %s: expected bytes", ydlResult.Info.URL, subtitle.Language)
 			}
 		}
+	}
+}
+
+func TestErrorNotAPlaylist(t *testing.T) {
+	_, ydlResultErr := New(context.Background(), testVideoRawURL, Options{
+		Type:              TypePlaylist,
+		DownloadThumbnail: false,
+	})
+	if ydlResultErr.Error() != "not a playlist" {
+		t.Errorf("expected is playlist error")
+	}
+}
+
+func TestErrorNotASingle(t *testing.T) {
+	_, ydlResultErr := New(context.Background(), playlistRawURL, Options{
+		Type:              TypeSingle,
+		DownloadThumbnail: false,
+	})
+	if ydlResultErr.Error() != "not a single" {
+		t.Errorf("expected is playlist error")
 	}
 }

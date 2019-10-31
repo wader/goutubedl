@@ -173,9 +173,27 @@ func (f Format) String() string {
 	)
 }
 
+// Type of response you want
+type Type int
+
+const (
+	// TypeAny single or playlist (default)
+	TypeAny Type = iota
+	// TypeSingle single track, file etc
+	TypeSingle
+	// TypePlaylist playlist with multiple tracks, files etc
+	TypePlaylist
+)
+
+var TypeFromString = map[string]Type{
+	"any":      TypeAny,
+	"single":   TypeSingle,
+	"playlist": TypePlaylist,
+}
+
 // Options for New()
 type Options struct {
-	YesPlaylist       bool // --yes-playlist
+	Type              Type
 	PlaylistStart     uint // --playlist-start
 	PlaylistEnd       uint // --playlist-end
 	DownloadThumbnail bool
@@ -234,7 +252,7 @@ func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info
 		"--batch-file", "-",
 		"-J",
 	)
-	if options.YesPlaylist {
+	if options.Type == TypePlaylist {
 		cmd.Args = append(cmd.Args, "--yes-playlist")
 
 		if options.PlaylistStart > 0 {
@@ -300,8 +318,15 @@ func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info
 		return Info{}, nil, infoErr
 	}
 
-	if options.YesPlaylist && (info.Type != "playlist" || info.Type == "multi_video") {
+	isPlaylist := info.Type == "playlist" || info.Type == "multi_video"
+	switch {
+	case options.Type == TypePlaylist && !isPlaylist:
 		return Info{}, nil, fmt.Errorf("not a playlist")
+	case options.Type == TypeSingle && isPlaylist:
+		return Info{}, nil, fmt.Errorf("not a single")
+	default:
+		// any type
+	}
 	}
 
 	// TODO: use headers from youtube-dl info for thumbnail and subtitle download?
@@ -334,7 +359,7 @@ func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info
 	}
 
 	// as we ignore errors some entries might show up as null
-	if options.YesPlaylist {
+	if options.Type == TypePlaylist {
 		var filteredEntrise []Info
 		for _, e := range info.Entries {
 			if e.ID == "" {
