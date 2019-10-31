@@ -133,24 +133,25 @@ type Thumbnail struct {
 
 // Format youtube-dl downloadable format
 type Format struct {
-	Ext            string  `json:"ext"`             // Video filename extension
-	Format         string  `json:"format"`          // A human-readable description of the format
-	FormatID       string  `json:"format_id"`       // Format code specified by `--format`
-	FormatNote     string  `json:"format_note"`     // Additional info about the format
-	Width          float64 `json:"width"`           // Width of the video
-	Height         float64 `json:"height"`          // Height of the video
-	Resolution     string  `json:"resolution"`      // Textual description of width and height
-	TBR            float64 `json:"tbr"`             // Average bitrate of audio and video in KBit/s
-	ABR            float64 `json:"abr"`             // Average audio bitrate in KBit/s
-	ACodec         string  `json:"acodec"`          // Name of the audio codec in use
-	ASR            float64 `json:"asr"`             // Audio sampling rate in Hertz
-	VBR            float64 `json:"vbr"`             // Average video bitrate in KBit/s
-	FPS            float64 `json:"fps"`             // Frame rate
-	VCodec         string  `json:"vcodec"`          // Name of the video codec in use
-	Container      string  `json:"container"`       // Name of the container format
-	Filesize       float64 `json:"filesize"`        // The number of bytes, if known in advance
-	FilesizeApprox float64 `json:"filesize_approx"` // An estimate for the number of bytes
-	Protocol       string  `json:"protocol"`        // The protocol that will be used for the actual download
+	Ext            string            `json:"ext"`             // Video filename extension
+	Format         string            `json:"format"`          // A human-readable description of the format
+	FormatID       string            `json:"format_id"`       // Format code specified by `--format`
+	FormatNote     string            `json:"format_note"`     // Additional info about the format
+	Width          float64           `json:"width"`           // Width of the video
+	Height         float64           `json:"height"`          // Height of the video
+	Resolution     string            `json:"resolution"`      // Textual description of width and height
+	TBR            float64           `json:"tbr"`             // Average bitrate of audio and video in KBit/s
+	ABR            float64           `json:"abr"`             // Average audio bitrate in KBit/s
+	ACodec         string            `json:"acodec"`          // Name of the audio codec in use
+	ASR            float64           `json:"asr"`             // Audio sampling rate in Hertz
+	VBR            float64           `json:"vbr"`             // Average video bitrate in KBit/s
+	FPS            float64           `json:"fps"`             // Frame rate
+	VCodec         string            `json:"vcodec"`          // Name of the video codec in use
+	Container      string            `json:"container"`       // Name of the container format
+	Filesize       float64           `json:"filesize"`        // The number of bytes, if known in advance
+	FilesizeApprox float64           `json:"filesize_approx"` // An estimate for the number of bytes
+	Protocol       string            `json:"protocol"`        // The protocol that will be used for the actual download
+	HTTPHeaders    map[string]string `json:"http_headers"`
 }
 
 // Subtitle youtube-dl subtitle
@@ -219,9 +220,6 @@ func Version(ctx context.Context) (string, error) {
 func New(ctx context.Context, rawURL string, options Options) (result Result, err error) {
 	if options.DebugLog == nil {
 		options.DebugLog = nopPrinter{}
-	}
-	if options.HTTPClient == nil {
-		options.HTTPClient = http.DefaultClient
 	}
 
 	info, rawJSON, err := infoFromURL(ctx, rawURL, options)
@@ -327,11 +325,26 @@ func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info
 	default:
 		// any type
 	}
+
+	get := func(url string) (*http.Response, error) {
+		c := http.DefaultClient
+		if options.HTTPClient != nil {
+			c = options.HTTPClient
+		}
+
+		r, err := http.NewRequest(http.MethodGet, url, nil)
+		if err != nil {
+			return nil, err
+		}
+		for k, v := range info.HTTPHeaders {
+			r.Header.Set(k, v)
+		}
+		return c.Do(r)
 	}
 
 	// TODO: use headers from youtube-dl info for thumbnail and subtitle download?
 	if options.DownloadThumbnail && info.Thumbnail != "" {
-		resp, respErr := options.HTTPClient.Get(info.Thumbnail)
+		resp, respErr := get(info.Thumbnail)
 		if respErr == nil {
 			buf, _ := ioutil.ReadAll(resp.Body)
 			resp.Body.Close()
@@ -348,7 +361,7 @@ func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info
 	if options.DownloadSubtitles {
 		for _, subtitles := range info.Subtitles {
 			for i, subtitle := range subtitles {
-				resp, respErr := options.HTTPClient.Get(subtitle.URL)
+				resp, respErr := get(subtitle.URL)
 				if respErr == nil {
 					buf, _ := ioutil.ReadAll(resp.Body)
 					resp.Body.Close()
