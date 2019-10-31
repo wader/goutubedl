@@ -233,22 +233,22 @@ func TestSubtitles(t *testing.T) {
 	}
 }
 
-func TestErrorNotAPlaylist(t *testing.T) {
+func TestErrorIsNotAPlaylist(t *testing.T) {
 	_, ydlResultErr := New(context.Background(), testVideoRawURL, Options{
 		Type:              TypePlaylist,
 		DownloadThumbnail: false,
 	})
-	if ydlResultErr.Error() != "not a playlist" {
+	if ydlResultErr.Error() != "is not a playlist" {
 		t.Errorf("expected is playlist error")
 	}
 }
 
-func TestErrorNotASingle(t *testing.T) {
+func TestErrorIsNotASingleEntry(t *testing.T) {
 	_, ydlResultErr := New(context.Background(), playlistRawURL, Options{
 		Type:              TypeSingle,
 		DownloadThumbnail: false,
 	})
-	if ydlResultErr.Error() != "not a single" {
-		t.Errorf("expected is playlist error")
+	if ydlResultErr.Error() != "is not a single entry" {
+		t.Errorf("expected is not a playlist error")
 	}
 }

@@ -319,9 +319,9 @@ func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info
 	isPlaylist := info.Type == "playlist" || info.Type == "multi_video"
 	switch {
 	case options.Type == TypePlaylist && !isPlaylist:
-		return Info{}, nil, fmt.Errorf("not a playlist")
+		return Info{}, nil, fmt.Errorf("is not a playlist")
 	case options.Type == TypeSingle && isPlaylist:
-		return Info{}, nil, fmt.Errorf("not a single")
+		return Info{}, nil, fmt.Errorf("is not a single entry")
 	default:
 		// any type
 	}
@@ -406,7 +406,7 @@ func (result Result) Download(ctx context.Context, filter string) (*DownloadResu
 	debugLog := result.Options.DebugLog
 
 	if result.Info.Type == "playlist" || result.Info.Type == "multi_video" {
-		return nil, fmt.Errorf("is a playlist")
+		return nil, fmt.Errorf("can't download a playlist")
 	}
 
 	tempPath, tempErr := ioutil.TempDir("", "ydls")
