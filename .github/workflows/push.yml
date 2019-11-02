@@ -1,6 +1,6 @@
-name: CI
+name: Build on push and PRs
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
