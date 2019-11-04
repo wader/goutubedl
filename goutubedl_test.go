@@ -181,6 +181,20 @@ func TestPlaylist(t *testing.T) {
 	}
 }
 
+func TestTestUnsupportedURL(t *testing.T) {
+	defer leaktest.Check(t)()
+
+	_, ydlResultErr := New(context.Background(), "https://www.google.com", Options{})
+	if ydlResultErr == nil {
+		t.Errorf("expected unsupported url")
+	}
+	expectedErr := "Unsupported URL: https://www.google.com"
+	if ydlResultErr != nil && ydlResultErr.Error() != expectedErr {
+		t.Errorf("expected error %q got %q", expectedErr, ydlResultErr.Error())
+
+	}
+}
+
 func TestPlaylistWithPrivateVideo(t *testing.T) {
 	defer leaktest.Check(t)()
 
@@ -233,22 +247,26 @@ func TestSubtitles(t *testing.T) {
 	}
 }
 
-func TestErrorIsNotAPlaylist(t *testing.T) {
+func TestErrorNotAPlaylist(t *testing.T) {
+	defer leakChecks(t)()
+
 	_, ydlResultErr := New(context.Background(), testVideoRawURL, Options{
 		Type:              TypePlaylist,
 		DownloadThumbnail: false,
 	})
-	if ydlResultErr.Error() != "is not a playlist" {
-		t.Errorf("expected is playlist error")
+	if ydlResultErr != ErrNotAPlaylist {
+		t.Errorf("expected is playlist error, got %s", ydlResultErr)
 	}
 }
 
-func TestErrorIsNotASingleEntry(t *testing.T) {
+func TestErrorNotASingleEntry(t *testing.T) {
+	defer leakChecks(t)()
+
 	_, ydlResultErr := New(context.Background(), playlistRawURL, Options{
 		Type:              TypeSingle,
 		DownloadThumbnail: false,
 	})
-	if ydlResultErr.Error() != "is not a single entry" {
-		t.Errorf("expected is not a playlist error")
+	if ydlResultErr != ErrNotASingleEntry {
+		t.Errorf("expected is single entry error, got %s", ydlResultErr)
 	}
 }

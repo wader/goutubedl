@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -29,12 +30,18 @@ type nopPrinter struct{}
 
 func (nopPrinter) Print(v ...interface{}) {}
 
-// Error youtube-dl specific error
-type Error string
+// YoutubedlError is a error from youtube-dl
+type YoutubedlError string
 
-func (e Error) Error() string {
+func (e YoutubedlError) Error() string {
 	return string(e)
 }
+
+// ErrNotAPlaylist error when single entry when expected a playlist
+var ErrNotAPlaylist = errors.New("single entry when expected a playlist")
+
+// ErrNotASingleEntry error when playlist when expected a single entry
+var ErrNotASingleEntry = errors.New("playlist when expected a single entry")
 
 // Info youtube-dl info
 type Info struct {
@@ -241,9 +248,10 @@ func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info
 	cmd := exec.CommandContext(
 		ctx,
 		Path,
+		// see comment below about ignoring errors for playlists
+		"--ignore-errors",
 		"--no-call-home",
 		"--no-cache-dir",
-		"--ignore-errors",
 		"--skip-download",
 		"--restrict-filenames",
 		// provide URL via stdin for security, youtube-dl has some run command args
@@ -302,28 +310,35 @@ func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info
 		}
 	}
 
-	// HACK: --ignore-errors still return error message and exit code != 0
-	// so workaround is to assume things went ok if we get some json on stdout
-	if len(stdoutBuf.Bytes()) == 0 {
+	infoSeemsOk := false
+	if len(stdoutBuf.Bytes()) > 0 {
+		if infoErr := json.Unmarshal(stdoutBuf.Bytes(), &info); infoErr != nil {
+			return Info{}, nil, infoErr
+		}
+
+		isPlaylist := info.Type == "playlist" || info.Type == "multi_video"
+		switch {
+		case options.Type == TypePlaylist && !isPlaylist:
+			return Info{}, nil, ErrNotAPlaylist
+		case options.Type == TypeSingle && isPlaylist:
+			return Info{}, nil, ErrNotASingleEntry
+		default:
+			// any type
+		}
+
+		// HACK: --ignore-errors still return error message and exit code != 0
+		// so workaround is to assume things went ok if we get some ok json on stdout
+		infoSeemsOk = info.ID != ""
+	}
+
+	if !infoSeemsOk {
 		if errMessage != "" {
-			return Info{}, nil, Error(errMessage)
+			return Info{}, nil, YoutubedlError(errMessage)
 		} else if cmdErr != nil {
 			return Info{}, nil, cmdErr
 		}
-	}
 
-	if infoErr := json.Unmarshal(stdoutBuf.Bytes(), &info); infoErr != nil {
-		return Info{}, nil, infoErr
-	}
-
-	isPlaylist := info.Type == "playlist" || info.Type == "multi_video"
-	switch {
-	case options.Type == TypePlaylist && !isPlaylist:
-		return Info{}, nil, fmt.Errorf("is not a playlist")
-	case options.Type == TypeSingle && isPlaylist:
-		return Info{}, nil, fmt.Errorf("is not a single entry")
-	default:
-		// any type
+		return Info{}, nil, fmt.Errorf("unknown error")
 	}
 
 	get := func(url string) (*http.Response, error) {
@@ -371,7 +386,7 @@ func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info
 		}
 	}
 
-	// as we ignore errors some entries might show up as null
+	// as we ignore errors for playlists some entries might show up as null
 	if options.Type == TypePlaylist {
 		var filteredEntrise []Info
 		for _, e := range info.Entries {
