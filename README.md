@@ -2,17 +2,57 @@
 
 Go wrapper for [youtube-dl](https://github.com/ytdl-org/youtube-dl). [API documentation](https://godoc.org/github.com/wader/goutubedl) can be found at godoc.org.
 
-See [youtube-dl documentation](https://github.com/ytdl-org/youtube-dl#do-i-need-any-other-programs)
-for what is recommended to install in addition to youtube-dl.
+See [youtube-dl documentation](https://github.com/ytdl-org/youtube-dl) for how to
+install and what is recommended to install in addition to youtube-dl.
+
+goutubedl default uses `PATH` to find youtube-dl but it can be configured with the `goutubedl.Path`
+variable.
+
+Due to the nature and frequent updates of youtube-dl only the latest version
+is tested. But it seems to work well with older versions also.
 
 ### Usage
 
+From [cmd/example/main.go](cmd/example/main.go)
 ```go
-result, err := goutubedl.New(context.Background(), URL, goutubedl.Options{})
-downloadResult, err := result.Download(context.Background(), FormatID)
-io.Copy(ioutil.Discard, downloadResult)
-downloadResult.Close()
+package main
+
+import (
+	"context"
+	"io"
+	"log"
+	"os"
+
+	"github.com/wader/goutubedl"
+)
+
+func main() {
+	result, err := goutubedl.New(context.Background(), "https://www.youtube.com/watch?v=jgVhBThJdXc", goutubedl.Options{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	downloadResult, err := result.Download(context.Background(), "best")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer downloadResult.Close()
+	f, err := os.Create("output")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	io.Copy(f, downloadResult)
+}
+
 ```
 
 See [goutubedl cmd tool](cmd/goutubedl/main.go) or [ydls](https://github.com/wader/ydls)
 for usage examples.
+
+### Development
+
+```sh
+docker build -t goutubedl-dev .
+docker run --rm -ti -v "$PWD:$PWD" -w "$PWD" goutubedl-dev
+go test -v -race -cover
+```
