@@ -1,6 +1,6 @@
 ## goutubedl
 
-Go wrapper for [youtube-dl](https://github.com/ytdl-org/youtube-dl). [API documentation](https://pkg.go.dev/github.com/wader/goutubedl?tab=doc) can be found at godoc.org.
+Go wrapper for [youtube-dl](https://github.com/ytdl-org/youtube-dl). API documentation can be found at [godoc.org](https://pkg.go.dev/github.com/wader/goutubedl?tab=doc).
 
 See [youtube-dl documentation](https://github.com/ytdl-org/youtube-dl) for how to
 install and what is recommended to install in addition to youtube-dl.
