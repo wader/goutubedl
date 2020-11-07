@@ -1,5 +1,5 @@
 # bump: golang /GOLANG_VERSION=([\d.]+)/ docker:golang|^1
-ARG GOLANG_VERSION=1.15.3
+ARG GOLANG_VERSION=1.15.4
 # bump: youtube-dl /YDL_VERSION=([\d.]+)/ https://gitlab.com/dstftw/youtube-dl.git|/^\d/|sort
 ARG YDL_VERSION=2020.11.01.1
 
