@@ -98,7 +98,7 @@ func TestParseInfo(t *testing.T) {
 		url           string
 		expectedTitle string
 	}{
-		{"https://soundcloud.com/avalonemerson/avalon-emerson-live-at-printworks-london-march-2017", "Avalon Emerson Live at Printworks London"},
+		{"https://soundcloud.com/avalonemerson/avalon-emerson-live-at-printworks-london-march-2017", "Avalon Emerson Live at Printworks London 2017"},
 		{"https://www.infoq.com/presentations/Simple-Made-Easy", "Simple Made Easy"},
 		{"https://www.youtube.com/watch?v=uVYWQJ5BB_w", "A Radiolab Producer on the Making of a Podcast"},
 	} {
@@ -188,9 +188,9 @@ func TestTestUnsupportedURL(t *testing.T) {
 	if ydlResultErr == nil {
 		t.Errorf("expected unsupported url")
 	}
-	expectedErr := "Unsupported URL: https://www.google.com"
-	if ydlResultErr != nil && ydlResultErr.Error() != expectedErr {
-		t.Errorf("expected error %q got %q", expectedErr, ydlResultErr.Error())
+	expectedErrPrefix := "Unsupported URL: https://www.google.com"
+	if ydlResultErr != nil && !strings.HasPrefix(ydlResultErr.Error(), expectedErrPrefix) {
+		t.Errorf("expected error prefix %q got %q", expectedErrPrefix, ydlResultErr.Error())
 
 	}
 }
