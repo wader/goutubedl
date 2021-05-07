@@ -1,6 +1,6 @@
 # bump: golang /GOLANG_VERSION=([\d.]+)/ docker:golang|^1
 # bump: golang link "Release notes" https://golang.org/doc/devel/release.html
-ARG GOLANG_VERSION=1.16.3
+ARG GOLANG_VERSION=1.16.4
 # bump: youtube-dl /YDL_VERSION=([\d.]+)/ https://github.com/ytdl-org/youtube-dl.git|/^\d/|sort
 # bump: youtube-dl link "Release notes" https://github.com/ytdl-org/youtube-dl/releases/tag/$LATEST
 ARG YDL_VERSION=2021.04.26
