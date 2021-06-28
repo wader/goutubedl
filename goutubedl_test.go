@@ -1,4 +1,4 @@
-package goutubedl
+package goutubedl_test
 
 // TODO: currently the tests only run on linux as they use osleaktest which only
 // has linux support
@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/fortytw2/leaktest"
+	"github.com/wader/goutubedl"
 	"github.com/wader/osleaktest"
 )
 
@@ -33,10 +34,10 @@ func leakChecks(t *testing.T) func() {
 
 func TestBinaryNotPath(t *testing.T) {
 	defer leakChecks(t)()
-	defer func(orig string) { Path = orig }(Path)
-	Path = "/non-existing"
+	defer func(orig string) { goutubedl.Path = orig }(goutubedl.Path)
+	goutubedl.Path = "/non-existing"
 
-	_, versionErr := Version(context.Background())
+	_, versionErr := goutubedl.Version(context.Background())
 	if versionErr == nil || !strings.Contains(versionErr.Error(), "no such file or directory") {
 		t.Fatalf("err should be nil 'no such file or directory': %v", versionErr)
 	}
@@ -46,7 +47,7 @@ func TestVersion(t *testing.T) {
 	defer leakChecks(t)()
 
 	versionRe := regexp.MustCompile(`^\d{4}\.\d{2}.\d{2}.*$`)
-	version, versionErr := Version(context.Background())
+	version, versionErr := goutubedl.Version(context.Background())
 
 	if versionErr != nil {
 		t.Fatalf("err: %s", versionErr)
@@ -57,15 +58,21 @@ func TestVersion(t *testing.T) {
 	}
 }
 
-func TestDownload(t *testing.T) {
+func testDownload(t *testing.T, rawURL string, optionsFn func(options *goutubedl.Options)) {
 	defer leakChecks(t)()
 
 	stderrBuf := &bytes.Buffer{}
-	r, err := New(context.Background(), testVideoRawURL, Options{
+
+	options := goutubedl.Options{
 		StderrFn: func(cmd *exec.Cmd) io.Writer {
 			return stderrBuf
 		},
-	})
+	}
+	if optionsFn != nil {
+		optionsFn(&options)
+	}
+
+	r, err := goutubedl.New(context.Background(), rawURL, options)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -93,6 +100,18 @@ func TestDownload(t *testing.T) {
 	}
 }
 
+func TestDownload(t *testing.T) {
+	defer leakChecks(t)()
+	testDownload(t, testVideoRawURL, nil)
+}
+
+func TestHTTPChunkSize(t *testing.T) {
+	defer leakChecks(t)()
+	testDownload(t, testVideoRawURL, func(options *goutubedl.Options) {
+		options.HTTPChunkSize = 1000000
+	})
+}
+
 func TestParseInfo(t *testing.T) {
 	for _, c := range []struct {
 		url           string
@@ -106,7 +125,7 @@ func TestParseInfo(t *testing.T) {
 			defer leakChecks(t)()
 
 			ctx, cancelFn := context.WithCancel(context.Background())
-			ydlResult, err := New(ctx, c.url, Options{
+			ydlResult, err := goutubedl.New(ctx, c.url, goutubedl.Options{
 				DownloadThumbnail: true,
 			})
 			if err != nil {
@@ -156,8 +175,8 @@ func TestParseInfo(t *testing.T) {
 func TestPlaylist(t *testing.T) {
 	defer leakChecks(t)()
 
-	ydlResult, ydlResultErr := New(context.Background(), playlistRawURL, Options{
-		Type:              TypePlaylist,
+	ydlResult, ydlResultErr := goutubedl.New(context.Background(), playlistRawURL, goutubedl.Options{
+		Type:              goutubedl.TypePlaylist,
 		DownloadThumbnail: false,
 	})
 
@@ -184,7 +203,7 @@ func TestPlaylist(t *testing.T) {
 func TestTestUnsupportedURL(t *testing.T) {
 	defer leaktest.Check(t)()
 
-	_, ydlResultErr := New(context.Background(), "https://www.google.com", Options{})
+	_, ydlResultErr := goutubedl.New(context.Background(), "https://www.google.com", goutubedl.Options{})
 	if ydlResultErr == nil {
 		t.Errorf("expected unsupported url")
 	}
@@ -199,8 +218,8 @@ func TestPlaylistWithPrivateVideo(t *testing.T) {
 	defer leaktest.Check(t)()
 
 	playlistRawURL := "https://www.youtube.com/playlist?list=PLX0g748fkegS54oiDN4AXKl7BR7mLIydP"
-	ydlResult, ydlResultErr := New(context.Background(), playlistRawURL, Options{
-		Type:              TypePlaylist,
+	ydlResult, ydlResultErr := goutubedl.New(context.Background(), playlistRawURL, goutubedl.Options{
+		Type:              goutubedl.TypePlaylist,
 		DownloadThumbnail: false,
 	})
 
@@ -218,10 +237,10 @@ func TestPlaylistWithPrivateVideo(t *testing.T) {
 func TestSubtitles(t *testing.T) {
 	defer leakChecks(t)()
 
-	ydlResult, ydlResultErr := New(
+	ydlResult, ydlResultErr := goutubedl.New(
 		context.Background(),
 		subtitlesTestVideoRawURL,
-		Options{
+		goutubedl.Options{
 			DownloadSubtitles: true,
 		})
 
@@ -250,11 +269,11 @@ func TestSubtitles(t *testing.T) {
 func TestErrorNotAPlaylist(t *testing.T) {
 	defer leakChecks(t)()
 
-	_, ydlResultErr := New(context.Background(), testVideoRawURL, Options{
-		Type:              TypePlaylist,
+	_, ydlResultErr := goutubedl.New(context.Background(), testVideoRawURL, goutubedl.Options{
+		Type:              goutubedl.TypePlaylist,
 		DownloadThumbnail: false,
 	})
-	if ydlResultErr != ErrNotAPlaylist {
+	if ydlResultErr != goutubedl.ErrNotAPlaylist {
 		t.Errorf("expected is playlist error, got %s", ydlResultErr)
 	}
 }
@@ -262,11 +281,11 @@ func TestErrorNotAPlaylist(t *testing.T) {
 func TestErrorNotASingleEntry(t *testing.T) {
 	defer leakChecks(t)()
 
-	_, ydlResultErr := New(context.Background(), playlistRawURL, Options{
-		Type:              TypeSingle,
+	_, ydlResultErr := goutubedl.New(context.Background(), playlistRawURL, goutubedl.Options{
+		Type:              goutubedl.TypeSingle,
 		DownloadThumbnail: false,
 	})
-	if ydlResultErr != ErrNotASingleEntry {
+	if ydlResultErr != goutubedl.ErrNotASingleEntry {
 		t.Errorf("expected is single entry error, got %s", ydlResultErr)
 	}
 }
