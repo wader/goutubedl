@@ -208,6 +208,7 @@ type Options struct {
 	DownloadSubtitles bool
 	DebugLog          Printer
 	StderrFn          func(cmd *exec.Cmd) io.Writer // if not nil, function to get Writer for stderr
+	HTTPChunkSize     uint                          // --http-chunk-size
 	HTTPClient        *http.Client                  // Client for download thumbnail and subtitles (nil use http.DefaultClient)
 }
 
@@ -454,6 +455,9 @@ func (result Result) Download(ctx context.Context, filter string) (*DownloadResu
 	if !result.Info.Direct {
 		cmd.Args = append(cmd.Args, "-f", filter)
 	}
+	if result.Options.HTTPChunkSize != 0 {
+		cmd.Args = append(cmd.Args, "--http-chunk-size", fmt.Sprintf("%d", result.Options.HTTPChunkSize))
+	}
 
 	cmd.Dir = tempPath
 	var w io.WriteCloser
@@ -472,14 +476,16 @@ func (result Result) Download(ctx context.Context, filter string) (*DownloadResu
 		return nil, err
 	}
 
+	var waitErr error
+
 	go func() {
-		cmd.Wait()
+		waitErr = cmd.Wait()
 		w.Close()
 		os.RemoveAll(tempPath)
 		close(dr.waitCh)
 	}()
 
-	return dr, nil
+	return dr, waitErr
 }
 
 func (dr *DownloadResult) Read(p []byte) (n int, err error) {
