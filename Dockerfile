@@ -3,7 +3,7 @@
 ARG GOLANG_VERSION=1.17.5
 # bump: youtube-dl /YDL_VERSION=([\d.]+)/ https://github.com/ytdl-org/youtube-dl.git|/^\d/|sort
 # bump: youtube-dl link "Release notes" https://github.com/ytdl-org/youtube-dl/releases/tag/$LATEST
-ARG YDL_VERSION=2021.06.06
+ARG YDL_VERSION=2021.12.17
 
 FROM golang:$GOLANG_VERSION AS base
 ARG YDL_VERSION
