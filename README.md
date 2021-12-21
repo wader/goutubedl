@@ -1,12 +1,15 @@
 ## goutubedl
 
-Go wrapper for [youtube-dl](https://github.com/ytdl-org/youtube-dl). API documentation can be found at [godoc.org](https://pkg.go.dev/github.com/wader/goutubedl?tab=doc).
+Go wrapper for [youtube-dl](https://github.com/ytdl-org/youtube-dl) and [yt-dlp](https://github.com/yt-dlp/yt-dlp), currently tested and
+developed using yt-dlp.
+API documentation can be found at [godoc.org](https://pkg.go.dev/github.com/wader/goutubedl?tab=doc).
 
-See [youtube-dl documentation](https://github.com/ytdl-org/youtube-dl) for how to
+See [yt-dlp documentation](https://github.com/yt-dlp/yt-dlp) for how to
 install and what is recommended to install in addition to youtube-dl.
 
 goutubedl default uses `PATH` to find youtube-dl but it can be configured with the `goutubedl.Path`
-variable.
+variable. Default is currently `youtube-dl` for backwards compability. If your using yt-dlp you
+probably want to set it to `yt-dlp`.
 
 Due to the nature and frequent updates of youtube-dl only the latest version
 is tested. But it seems to work well with older versions also.

@@ -1,18 +1,18 @@
 # bump: golang /GOLANG_VERSION=([\d.]+)/ docker:golang|^1
 # bump: golang link "Release notes" https://golang.org/doc/devel/release.html
 ARG GOLANG_VERSION=1.17.5
-# bump: youtube-dl /YDL_VERSION=([\d.]+)/ https://github.com/ytdl-org/youtube-dl.git|/^\d/|sort
-# bump: youtube-dl link "Release notes" https://github.com/ytdl-org/youtube-dl/releases/tag/$LATEST
-ARG YDL_VERSION=2021.06.06
+# bump: yt-dlp /YT_DLP=([\d.-]+)/ https://github.com/yt-dlp/yt-dlp.git|/^\d/|sort
+# bump: yt-dlp link "Release notes" https://github.com/yt-dlp/yt-dlp/releases/tag/$LATEST
+ARG YT_DLP=2021.12.01
 
 FROM golang:$GOLANG_VERSION AS base
-ARG YDL_VERSION
+ARG YT_DLP
 
 RUN \
   apt-get update -q && \
   apt-get install -y -q python-is-python3 && \
-  curl -L -o /usr/local/bin/youtube-dl https://yt-dl.org/downloads/$YDL_VERSION/youtube-dl && \
-  chmod a+x /usr/local/bin/youtube-dl
+  curl -L https://github.com/yt-dlp/yt-dlp/releases/download/$YT_DLP/yt-dlp -o /usr/local/bin/yt-dlp && \
+  chmod a+x /usr/local/bin/yt-dlp
 
 FROM base AS dev
 
