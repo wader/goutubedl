@@ -194,7 +194,7 @@ func TestTestUnsupportedURL(t *testing.T) {
 	if ydlResultErr == nil {
 		t.Errorf("expected unsupported url")
 	}
-	expectedErrPrefix := "Unsupported URL: https://www.google.com"
+	expectedErrPrefix := "Unsupported URL:"
 	if ydlResultErr != nil && !strings.HasPrefix(ydlResultErr.Error(), expectedErrPrefix) {
 		t.Errorf("expected error prefix %q got %q", expectedErrPrefix, ydlResultErr.Error())
 
