@@ -15,11 +15,17 @@ var dumpFlag = flag.Bool("J", false, "Dump JSON")
 var typeFlag = flag.String("t", "any", "Type")
 
 func main() {
+	goutubedl.Path = "yt-dlp"
+
 	log.SetFlags(0)
 	flag.Parse()
 
-	optType, _ := goutubedl.TypeFromString[*typeFlag]
-	result, err := goutubedl.New(context.Background(), flag.Arg(0), goutubedl.Options{Type: optType})
+	optType := goutubedl.TypeFromString[*typeFlag]
+	result, err := goutubedl.New(
+		context.Background(),
+		flag.Arg(0),
+		goutubedl.Options{Type: optType, DebugLog: log.Default()},
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -44,6 +50,8 @@ func main() {
 		log.Fatal(err)
 	}
 	defer f.Close()
-	io.Copy(f, dr)
+	if _, err := io.Copy(f, dr); err != nil {
+		log.Fatal(err)
+	}
 	dr.Close()
 }
