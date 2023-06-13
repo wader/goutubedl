@@ -206,6 +206,7 @@ type Options struct {
 	PlaylistEnd       uint // --playlist-end
 	DownloadThumbnail bool
 	DownloadSubtitles bool
+	ProxyUrl          string // --proxy URL  http://host:port or socks5://host:port
 	DebugLog          Printer
 	StderrFn          func(cmd *exec.Cmd) io.Writer // if not nil, function to get Writer for stderr
 	HTTPClient        *http.Client                  // Client for download thumbnail and subtitles (nil use http.DefaultClient)
@@ -258,6 +259,11 @@ func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info
 		"--batch-file", "-",
 		"-J",
 	)
+
+	if options.ProxyUrl != "" {
+		cmd.Args = append(cmd.Args, "--proxy", options.ProxyUrl)
+	}
+
 	if options.Type == TypePlaylist {
 		cmd.Args = append(cmd.Args, "--yes-playlist")
 
@@ -453,6 +459,10 @@ func (result Result) Download(ctx context.Context, filter string) (*DownloadResu
 	// also seems to be issues when using filter with generic extractor
 	if !result.Info.Direct {
 		cmd.Args = append(cmd.Args, "-f", filter)
+	}
+
+	if result.Options.ProxyUrl != "" {
+		cmd.Args = append(cmd.Args, "--proxy", result.Options.ProxyUrl)
 	}
 
 	cmd.Dir = tempPath
