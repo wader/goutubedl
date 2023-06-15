@@ -187,7 +187,7 @@ func TestPlaylist(t *testing.T) {
 	}
 }
 
-func TestTestUnsupportedURL(t *testing.T) {
+func TestUnsupportedURL(t *testing.T) {
 	defer leaktest.Check(t)()
 
 	_, ydlResultErr := goutubedl.New(context.Background(), "https://www.google.com", goutubedl.Options{})
@@ -273,6 +273,31 @@ func TestErrorNotASingleEntry(t *testing.T) {
 		DownloadThumbnail: false,
 	})
 	if ydlResultErr != goutubedl.ErrNotASingleEntry {
-		t.Errorf("expected is single entry error, got %s", ydlResultErr)
+		t.Fatalf("expected is single entry error, got %s", ydlResultErr)
 	}
+}
+
+func TestOptionDownloader(t *testing.T) {
+	defer leakChecks(t)()
+
+	ydlResult, ydlResultErr := goutubedl.New(
+		context.Background(),
+		testVideoRawURL,
+		goutubedl.Options{
+			Downloader: "ffmpeg",
+		})
+
+	if ydlResultErr != nil {
+		t.Fatalf("failed to download: %s", ydlResultErr)
+	}
+	dr, err := ydlResult.Download(context.Background(), ydlResult.Info.Formats[0].FormatID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	downloadBuf := &bytes.Buffer{}
+	_, err = io.Copy(downloadBuf, dr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dr.Close()
 }
