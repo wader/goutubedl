@@ -202,8 +202,9 @@ var TypeFromString = map[string]Type{
 // Options for New()
 type Options struct {
 	Type              Type
-	PlaylistStart     uint // --playlist-start
-	PlaylistEnd       uint // --playlist-end
+	PlaylistStart     uint   // --playlist-start
+	PlaylistEnd       uint   // --playlist-end
+	Downloader        string // --downloader
 	DownloadThumbnail bool
 	DownloadSubtitles bool
 	ProxyUrl          string // --proxy URL  http://host:port or socks5://host:port
@@ -262,6 +263,10 @@ func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info
 
 	if options.ProxyUrl != "" {
 		cmd.Args = append(cmd.Args, "--proxy", options.ProxyUrl)
+	}
+
+	if options.Downloader != "" {
+		cmd.Args = append(cmd.Args, "--downloader", options.Downloader)
 	}
 
 	if options.Type == TypePlaylist {
@@ -465,6 +470,10 @@ func (result Result) Download(ctx context.Context, filter string) (*DownloadResu
 		cmd.Args = append(cmd.Args, "--proxy", result.Options.ProxyUrl)
 	}
 
+	if result.Options.Downloader != "" {
+		cmd.Args = append(cmd.Args, "--downloader", result.Options.Downloader)
+	}
+
 	cmd.Dir = tempPath
 	var w io.WriteCloser
 	dr.reader, w = io.Pipe()
@@ -483,7 +492,7 @@ func (result Result) Download(ctx context.Context, filter string) (*DownloadResu
 	}
 
 	go func() {
-		cmd.Wait()
+		_ = cmd.Wait()
 		w.Close()
 		os.RemoveAll(tempPath)
 		close(dr.waitCh)

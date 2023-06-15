@@ -31,7 +31,7 @@ func main() {
 	}
 
 	if *dumpFlag {
-		json.NewEncoder(os.Stdout).Encode(result.Info)
+		_ = json.NewEncoder(os.Stdout).Encode(result.Info)
 		return
 	}
 
