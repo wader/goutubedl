@@ -55,7 +55,7 @@ for usage examples.
 ### Development
 
 ```sh
-docker build -t goutubedl-dev .
+docker build --target dev -t goutubedl-dev .
 docker run --rm -ti -v "$PWD:$PWD" -w "$PWD" goutubedl-dev
 go test -v -race -cover
 ```
