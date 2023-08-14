@@ -462,7 +462,7 @@ func (result Result) Download(ctx context.Context, filter string) (*DownloadResu
 	)
 	// don't need to specify if direct as there is only one
 	// also seems to be issues when using filter with generic extractor
-	if !result.Info.Direct {
+	if !result.Info.Direct && filter != "" {
 		cmd.Args = append(cmd.Args, "-f", filter)
 	}
 
