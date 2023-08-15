@@ -427,9 +427,8 @@ type DownloadResult struct {
 	waitCh chan struct{}
 }
 
-// Download format matched by filter (usually a format id or "best").
-// Filter should not be a combine filter like "1+2" as then youtube-dl
-// won't write to stdout.
+// Download format matched by filter (usually a format id or quality designator).
+// If filter is empty, then youtube-dl will use "best" as the format by default.
 func (result Result) Download(ctx context.Context, filter string) (*DownloadResult, error) {
 	debugLog := result.Options.DebugLog
 
