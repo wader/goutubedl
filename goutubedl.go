@@ -211,6 +211,8 @@ type Options struct {
 	DebugLog          Printer
 	StderrFn          func(cmd *exec.Cmd) io.Writer // if not nil, function to get Writer for stderr
 	HTTPClient        *http.Client                  // Client for download thumbnail and subtitles (nil use http.DefaultClient)
+	MergeOutputFormat string                        // --merge-output-format
+	SortingFormat     string                        // --format-sort
 }
 
 // Version of youtube-dl.
@@ -425,9 +427,8 @@ type DownloadResult struct {
 	waitCh chan struct{}
 }
 
-// Download format matched by filter (usually a format id or "best").
-// Filter should not be a combine filter like "1+2" as then youtube-dl
-// won't write to stdout.
+// Download format matched by filter (usually a format id or quality designator).
+// If filter is empty, then youtube-dl will use its default format selector.
 func (result Result) Download(ctx context.Context, filter string) (*DownloadResult, error) {
 	debugLog := result.Options.DebugLog
 
@@ -462,7 +463,7 @@ func (result Result) Download(ctx context.Context, filter string) (*DownloadResu
 	)
 	// don't need to specify if direct as there is only one
 	// also seems to be issues when using filter with generic extractor
-	if !result.Info.Direct {
+	if !result.Info.Direct && filter != "" {
 		cmd.Args = append(cmd.Args, "-f", filter)
 	}
 
@@ -472,6 +473,18 @@ func (result Result) Download(ctx context.Context, filter string) (*DownloadResu
 
 	if result.Options.Downloader != "" {
 		cmd.Args = append(cmd.Args, "--downloader", result.Options.Downloader)
+	}
+
+	if result.Options.MergeOutputFormat != "" {
+		cmd.Args = append(cmd.Args,
+			"--merge-output-format", result.Options.MergeOutputFormat,
+		)
+	}
+
+	if result.Options.SortingFormat != "" {
+		cmd.Args = append(cmd.Args,
+			"--format-sort", result.Options.SortingFormat,
+		)
 	}
 
 	cmd.Dir = tempPath
