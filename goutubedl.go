@@ -428,7 +428,7 @@ type DownloadResult struct {
 }
 
 // Download format matched by filter (usually a format id or quality designator).
-// If filter is empty, then youtube-dl will use "best" as the format by default.
+// If filter is empty, then youtube-dl will use its default format selector.
 func (result Result) Download(ctx context.Context, filter string) (*DownloadResult, error) {
 	debugLog := result.Options.DebugLog
 
