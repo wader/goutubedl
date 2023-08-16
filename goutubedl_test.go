@@ -343,7 +343,7 @@ func TestDownloadPlaylistEntry(t *testing.T) {
 	}
 
 	dr, err := r.DownloadWithOptions(context.Background(), goutubedl.DownloadOptions{
-		PlaylistIndex: playlistIndex + 1,
+		PlaylistIndex: int(r.Info.Entries[playlistIndex].PlaylistIndex),
 		Filter:        r.Info.Entries[playlistIndex].Formats[0].FormatID,
 	})
 	if err != nil {

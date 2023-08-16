@@ -431,7 +431,9 @@ type DownloadResult struct {
 	waitCh chan struct{}
 }
 
-// Download is a shortcut of DownloadOptions where the options use the default value
+// Download format matched by filter (usually a format id or quality designator).
+// If filter is empty, then youtube-dl will use its default format selector.
+// It's a shortcut of DownloadWithOptions where the options use the default value
 func (result Result) Download(ctx context.Context, filter string) (*DownloadResult, error) {
 	return result.DownloadWithOptions(ctx, DownloadOptions{
 		Filter: filter,
@@ -443,7 +445,7 @@ type DownloadOptions struct {
 	// If filter is empty, then youtube-dl will use its default format selector.
 	Filter string
 	// The index of the entry to download from the playlist that would be
-	// passed to youtube-dl wia --playlist-items. The index value starts at 1
+	// passed to youtube-dl via --playlist-items. The index value starts at 1
 	PlaylistIndex int
 }
 
