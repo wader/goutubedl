@@ -434,8 +434,7 @@ type DownloadResult struct {
 // Download is a shortcut of DownloadOptions where the options use the default value
 func (result Result) Download(ctx context.Context, filter string) (*DownloadResult, error) {
 	return result.DownloadWithOptions(ctx, DownloadOptions{
-		Filter:        filter,
-		PlaylistIndex: -1,
+		Filter: filter,
 	})
 }
 
@@ -444,15 +443,14 @@ type DownloadOptions struct {
 	// If filter is empty, then youtube-dl will use its default format selector.
 	Filter string
 	// The index of the entry to download from the playlist that would be
-	// passed to youtube-dl wia --playlist-items.
-	// The index value starts at 1
+	// passed to youtube-dl wia --playlist-items. The index value starts at 1
 	PlaylistIndex int
 }
 
 func (result Result) DownloadWithOptions(ctx context.Context, options DownloadOptions) (*DownloadResult, error) {
 	debugLog := result.Options.DebugLog
 
-	if (result.Info.Type == "playlist" || result.Info.Type == "multi_video") && options.PlaylistIndex < 0 {
+	if (result.Info.Type == "playlist" || result.Info.Type == "multi_video") && options.PlaylistIndex == 0 {
 		return nil, fmt.Errorf("can't download a playlist when the playlist index options is not set")
 	}
 
@@ -487,7 +485,7 @@ func (result Result) DownloadWithOptions(ctx context.Context, options DownloadOp
 		cmd.Args = append(cmd.Args, "-f", options.Filter)
 	}
 
-	if options.PlaylistIndex >= 0 {
+	if options.PlaylistIndex > 0 {
 		cmd.Args = append(cmd.Args, "--playlist-items", fmt.Sprint(options.PlaylistIndex))
 	}
 
