@@ -301,3 +301,122 @@ func TestOptionDownloader(t *testing.T) {
 	}
 	dr.Close()
 }
+
+func TestInvalidOptionTypeField(t *testing.T) {
+	defer leakChecks(t)()
+
+	_, err := goutubedl.New(context.Background(), playlistRawURL, goutubedl.Options{
+		Type: 42,
+	})
+	if err == nil {
+		t.Error("should have failed")
+	}
+}
+
+func TestDownloadPlaylistEntry(t *testing.T) {
+	defer leakChecks(t)()
+	// Download file by specifying the playlist index
+	stderrBuf := &bytes.Buffer{}
+	r, err := goutubedl.New(context.Background(), playlistRawURL, goutubedl.Options{
+		StderrFn: func(cmd *exec.Cmd) io.Writer {
+			return stderrBuf
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedTitle := "Kindred Phenomena"
+	if r.Info.Title != expectedTitle {
+		t.Errorf("expected title %q got %q", expectedTitle, r.Info.Title)
+	}
+
+	expectedEntries := 8
+	if len(r.Info.Entries) != expectedEntries {
+		t.Errorf("expected %d entries got %d", expectedEntries, len(r.Info.Entries))
+	}
+
+	expectedTitleOne := "B1 Mattheis - Ben M"
+	playlistIndex := 2
+	if r.Info.Entries[playlistIndex].Title != expectedTitleOne {
+		t.Errorf("expected title %q got %q", expectedTitleOne, r.Info.Entries[playlistIndex].Title)
+	}
+
+	dr, err := r.DownloadWithOptions(context.Background(), goutubedl.DownloadOptions{
+		PlaylistIndex: int(r.Info.Entries[playlistIndex].PlaylistIndex),
+		Filter:        r.Info.Entries[playlistIndex].Formats[0].FormatID,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	playlistBuf := &bytes.Buffer{}
+	n, err := io.Copy(playlistBuf, dr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dr.Close()
+
+	if n != int64(playlistBuf.Len()) {
+		t.Errorf("copy n not equal to download buffer: %d!=%d", n, playlistBuf.Len())
+	}
+
+	if n < 10000 {
+		t.Errorf("should have copied at least 10000 bytes: %d", n)
+	}
+
+	if !strings.Contains(stderrBuf.String(), "Destination") {
+		t.Errorf("did not find expected log message on stderr: %q", stderrBuf.String())
+	}
+
+	// Download the same file but with the direct link
+	url := "https://soundcloud.com/mattheis/b1-mattheis-ben-m"
+	stderrBuf = &bytes.Buffer{}
+	r, err = goutubedl.New(context.Background(), url, goutubedl.Options{
+		StderrFn: func(cmd *exec.Cmd) io.Writer {
+			return stderrBuf
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if r.Info.Title != expectedTitleOne {
+		t.Errorf("expected title %q got %q", expectedTitleOne, r.Info.Title)
+	}
+
+	expectedEntries = 0
+	if len(r.Info.Entries) != expectedEntries {
+		t.Errorf("expected %d entries got %d", expectedEntries, len(r.Info.Entries))
+	}
+
+	dr, err = r.Download(context.Background(), r.Info.Formats[0].FormatID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	directLinkBuf := &bytes.Buffer{}
+	n, err = io.Copy(directLinkBuf, dr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dr.Close()
+
+	if n != int64(directLinkBuf.Len()) {
+		t.Errorf("copy n not equal to download buffer: %d!=%d", n, directLinkBuf.Len())
+	}
+
+	if n < 10000 {
+		t.Errorf("should have copied at least 10000 bytes: %d", n)
+	}
+
+	if !strings.Contains(stderrBuf.String(), "Destination") {
+		t.Errorf("did not find expected log message on stderr: %q", stderrBuf.String())
+	}
+
+	if directLinkBuf.Len() != playlistBuf.Len() {
+		t.Errorf("not the same content size between the playlist index entry and the direct link entry: %d != %d", playlistBuf.Len(), directLinkBuf.Len())
+	}
+
+	if !bytes.Equal(directLinkBuf.Bytes(), playlistBuf.Bytes()) {
+		t.Error("not the same content between the playlist index entry and the direct link entry")
+	}
+}

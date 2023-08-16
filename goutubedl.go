@@ -270,8 +270,8 @@ func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info
 	if options.Downloader != "" {
 		cmd.Args = append(cmd.Args, "--downloader", options.Downloader)
 	}
-
-	if options.Type == TypePlaylist {
+	switch options.Type {
+	case TypePlaylist:
 		cmd.Args = append(cmd.Args, "--yes-playlist")
 
 		if options.PlaylistStart > 0 {
@@ -284,7 +284,7 @@ func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info
 				"--playlist-end", strconv.Itoa(int(options.PlaylistEnd)),
 			)
 		}
-	} else {
+	case TypeSingle:
 		if options.DownloadSubtitles {
 			cmd.Args = append(cmd.Args,
 				"--all-subs",
@@ -293,6 +293,10 @@ func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info
 		cmd.Args = append(cmd.Args,
 			"--no-playlist",
 		)
+	case TypeAny:
+		break
+	default:
+		return Info{}, nil, fmt.Errorf("Unhandle options type value: %d", options.Type)
 	}
 
 	tempPath, _ := ioutil.TempDir("", "ydls")
@@ -429,11 +433,27 @@ type DownloadResult struct {
 
 // Download format matched by filter (usually a format id or quality designator).
 // If filter is empty, then youtube-dl will use its default format selector.
+// It's a shortcut of DownloadWithOptions where the options use the default value
 func (result Result) Download(ctx context.Context, filter string) (*DownloadResult, error) {
+	return result.DownloadWithOptions(ctx, DownloadOptions{
+		Filter: filter,
+	})
+}
+
+type DownloadOptions struct {
+	// Download format matched by filter (usually a format id or quality designator).
+	// If filter is empty, then youtube-dl will use its default format selector.
+	Filter string
+	// The index of the entry to download from the playlist that would be
+	// passed to youtube-dl via --playlist-items. The index value starts at 1
+	PlaylistIndex int
+}
+
+func (result Result) DownloadWithOptions(ctx context.Context, options DownloadOptions) (*DownloadResult, error) {
 	debugLog := result.Options.DebugLog
 
-	if result.Info.Type == "playlist" || result.Info.Type == "multi_video" {
-		return nil, fmt.Errorf("can't download a playlist")
+	if (result.Info.Type == "playlist" || result.Info.Type == "multi_video") && options.PlaylistIndex == 0 {
+		return nil, fmt.Errorf("can't download a playlist when the playlist index options is not set")
 	}
 
 	tempPath, tempErr := ioutil.TempDir("", "ydls")
@@ -463,8 +483,12 @@ func (result Result) Download(ctx context.Context, filter string) (*DownloadResu
 	)
 	// don't need to specify if direct as there is only one
 	// also seems to be issues when using filter with generic extractor
-	if !result.Info.Direct && filter != "" {
-		cmd.Args = append(cmd.Args, "-f", filter)
+	if !result.Info.Direct && options.Filter != "" {
+		cmd.Args = append(cmd.Args, "-f", options.Filter)
+	}
+
+	if options.PlaylistIndex > 0 {
+		cmd.Args = append(cmd.Args, "--playlist-items", fmt.Sprint(options.PlaylistIndex))
 	}
 
 	if result.Options.ProxyUrl != "" {
