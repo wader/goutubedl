@@ -231,6 +231,17 @@ func Version(ctx context.Context) (string, error) {
 	return strings.TrimSpace(string(versionBytes)), nil
 }
 
+// Downloads given URL using the given options and filter (usually a format id or quality designator).
+// If filter is empty, then youtube-dl will use its default format selector.
+func Download(ctx context.Context, rawURL string, options Options, filter string) (*DownloadResult, error) {
+	options.NoInfoDownload = true
+	d, err := New(ctx, rawURL, options)
+	if err != nil {
+		return nil, err
+	}
+	return d.Download(ctx, filter)
+}
+
 // New downloads metadata for URL
 func New(ctx context.Context, rawURL string, options Options) (result Result, err error) {
 	if options.DebugLog == nil {

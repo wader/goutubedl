@@ -99,6 +99,38 @@ func TestDownload(t *testing.T) {
 	}
 }
 
+func TestDownloadWithoutInfo(t *testing.T) {
+	defer leakChecks(t)()
+
+	stderrBuf := &bytes.Buffer{}
+	dr, err := goutubedl.Download(context.Background(), testVideoRawURL, goutubedl.Options{
+		StderrFn: func(cmd *exec.Cmd) io.Writer {
+			return stderrBuf
+		},
+	}, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	downloadBuf := &bytes.Buffer{}
+	n, err := io.Copy(downloadBuf, dr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dr.Close()
+
+	if n != int64(downloadBuf.Len()) {
+		t.Errorf("copy n not equal to download buffer: %d!=%d", n, downloadBuf.Len())
+	}
+
+	if n < 10000 {
+		t.Errorf("should have copied at least 10000 bytes: %d", n)
+	}
+
+	if !strings.Contains(stderrBuf.String(), "Destination") {
+		t.Errorf("did not find expected log message on stderr: %q", stderrBuf.String())
+	}
+}
+
 func TestParseInfo(t *testing.T) {
 	for _, c := range []struct {
 		url           string
