@@ -215,8 +215,8 @@ type Options struct {
 	SortingFormat     string                        // --format-sort
 
 	// Set to true if you don't want to use the result.Info structure after the goutubedl.New() call,
-	// so the given URL will be downloaded in a single pass in the Download() call.
-	NoInfoDownload bool
+	// so the given URL will be downloaded in a single pass in the DownloadResult.Download() call.
+	noInfoDownload bool
 }
 
 // Version of youtube-dl.
@@ -234,7 +234,7 @@ func Version(ctx context.Context) (string, error) {
 // Downloads given URL using the given options and filter (usually a format id or quality designator).
 // If filter is empty, then youtube-dl will use its default format selector.
 func Download(ctx context.Context, rawURL string, options Options, filter string) (*DownloadResult, error) {
-	options.NoInfoDownload = true
+	options.noInfoDownload = true
 	d, err := New(ctx, rawURL, options)
 	if err != nil {
 		return nil, err
@@ -248,7 +248,7 @@ func New(ctx context.Context, rawURL string, options Options) (result Result, er
 		options.DebugLog = nopPrinter{}
 	}
 
-	if options.NoInfoDownload {
+	if options.noInfoDownload {
 		return Result{
 			RawURL:  rawURL,
 			Options: options,
@@ -476,7 +476,7 @@ type DownloadOptions struct {
 func (result Result) DownloadWithOptions(ctx context.Context, options DownloadOptions) (*DownloadResult, error) {
 	debugLog := result.Options.DebugLog
 
-	if !result.Options.NoInfoDownload {
+	if !result.Options.noInfoDownload {
 		if (result.Info.Type == "playlist" || result.Info.Type == "multi_video") && options.PlaylistIndex == 0 {
 			return nil, fmt.Errorf("can't download a playlist when the playlist index options is not set")
 		}
@@ -488,7 +488,7 @@ func (result Result) DownloadWithOptions(ctx context.Context, options DownloadOp
 	}
 
 	var jsonTempPath string
-	if !result.Options.NoInfoDownload {
+	if !result.Options.noInfoDownload {
 		jsonTempPath = path.Join(tempPath, "info.json")
 		if err := ioutil.WriteFile(jsonTempPath, result.RawJSON, 0600); err != nil {
 			os.RemoveAll(tempPath)
@@ -511,7 +511,7 @@ func (result Result) DownloadWithOptions(ctx context.Context, options DownloadOp
 		"-o", "-",
 	)
 
-	if result.Options.NoInfoDownload {
+	if result.Options.noInfoDownload {
 		// provide URL via stdin for security, youtube-dl has some run command args
 		cmd.Args = append(cmd.Args, "--batch-file", "-")
 		cmd.Stdin = bytes.NewBufferString(result.RawURL + "\n")
