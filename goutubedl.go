@@ -207,6 +207,7 @@ type Options struct {
 	Downloader        string // --downloader
 	DownloadThumbnail bool
 	DownloadSubtitles bool
+	DownloadSections  string // --download-sections
 	ProxyUrl          string // --proxy URL  http://host:port or socks5://host:port
 	DebugLog          Printer
 	StderrFn          func(cmd *exec.Cmd) io.Writer // if not nil, function to get Writer for stderr
@@ -554,6 +555,10 @@ func (result Result) DownloadWithOptions(ctx context.Context, options DownloadOp
 
 	if result.Options.Downloader != "" {
 		cmd.Args = append(cmd.Args, "--downloader", result.Options.Downloader)
+	}
+	
+	if result.Options.DownloadSections != "" {
+		cmd.Args = append(cmd.Args, "--download-sections", result.Options.DownloadSections)
 	}
 
 	if result.Options.MergeOutputFormat != "" {
