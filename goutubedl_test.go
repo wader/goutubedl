@@ -285,6 +285,35 @@ func TestSubtitles(t *testing.T) {
 	}
 }
 
+func TestDownloadSections(t *testing.T) {
+	defer leakChecks(t)()
+
+	ydlResult, ydlResultErr := goutubedl.New(
+		context.Background(),
+		"https://www.youtube.com/watch?v=OyuL5biOQ94",
+		goutubedl.Options{
+			DownloadSections: "*0:0-0:5",
+		})
+
+	
+	if ydlResult.Options.DownloadSections != "*0:0-0:5" {
+		t.Errorf("failed to setup --download-sections")
+	}
+	if ydlResultErr != nil {
+		t.Errorf("failed to download: %s", ydlResultErr)
+	}
+	dr, err := ydlResult.Download(context.Background(), ydlResult.Info.Formats[0].FormatID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	downloadBuf := &bytes.Buffer{}
+	_, err = io.Copy(downloadBuf, dr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dr.Close()
+}
+
 func TestErrorNotAPlaylist(t *testing.T) {
 	defer leakChecks(t)()
 
