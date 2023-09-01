@@ -308,7 +308,7 @@ func TestDownloadSections(t *testing.T) {
 	if ydlResultErr != nil {
 		t.Errorf("failed to download: %s", ydlResultErr)
 	}
-	dr, err := ydlResult.Download(context.Background(), ydlResult.Info.Formats[0].FormatID)
+	dr, err := ydlResult.Download(context.Background(), "best")
 	if err != nil {
 		t.Fatal(err)
 	}
