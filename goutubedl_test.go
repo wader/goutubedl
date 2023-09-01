@@ -288,6 +288,12 @@ func TestSubtitles(t *testing.T) {
 func TestDownloadSections(t *testing.T) {
 	defer leakChecks(t)()
 
+	cmd := exec.Command("ffmpeg", "-version")
+	_, err := cmd.Output()
+	if err != nil {
+		t.Errorf("failed to check ffmpeg installed: %s", err)
+	}
+
 	ydlResult, ydlResultErr := goutubedl.New(
 		context.Background(),
 		"https://www.youtube.com/watch?v=OyuL5biOQ94",
