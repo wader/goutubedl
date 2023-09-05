@@ -12,7 +12,7 @@ RUN \
   apt-get update -q && \
   apt-get install -y -q python-is-python3 && \
   curl -L https://github.com/yt-dlp/yt-dlp/releases/download/$YT_DLP/yt-dlp -o /usr/local/bin/yt-dlp && \
-  chmod a+x /usr/local/bin/yt-dlp \
+  chmod a+x /usr/local/bin/yt-dlp && \
   apt-get install ffmpeg && ffmpeg -version
 
 FROM base AS dev
