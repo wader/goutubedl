@@ -7,9 +7,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -283,6 +286,74 @@ func TestSubtitles(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestDownloadSections(t *testing.T) {
+	defer leakChecks(t)()
+
+	fileName := "durationTestingFile"
+	duration := 5
+
+	cmd := exec.Command("ffmpeg", "-version")
+	_, err := cmd.Output()
+	if err != nil {
+		t.Errorf("failed to check ffmpeg installed: %s", err)
+	}
+
+	ydlResult, ydlResultErr := goutubedl.New(
+		context.Background(),
+		"https://www.youtube.com/watch?v=OyuL5biOQ94",
+		goutubedl.Options{
+			DownloadSections: fmt.Sprintf("*0:0-0:%d", duration),
+		})
+
+	
+	if ydlResult.Options.DownloadSections != "*0:0-0:5" {
+		t.Errorf("failed to setup --download-sections")
+	}
+	if ydlResultErr != nil {
+		t.Errorf("failed to download: %s", ydlResultErr)
+	}
+	dr, err := ydlResult.Download(context.Background(), "best")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f, err := os.Create(fileName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	_, err = io.Copy(f, dr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cmd = exec.Command("ffprobe", "-v", "quiet", "-show_entries", "format=duration", fileName)
+	stdout, err := cmd.Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var gotDurationString string
+	output := string(stdout)
+	for _, line := range strings.Split(output, "\n") {
+		if strings.Contains(line, "duration") {
+			if d, found := strings.CutPrefix(line, "duration="); found {
+				gotDurationString = d
+			}
+		}
+	}
+
+	gotDuration, err := strconv.ParseFloat(gotDurationString, 32)
+	if err != nil {
+		t.Fatal(err)
+	}
+	seconds := int(gotDuration)
+	if seconds != duration {
+		t.Fatalf("didnot get expected duration of %d, but got %d", duration, seconds)
+	}
+	dr.Close()
 }
 
 func TestErrorNotAPlaylist(t *testing.T) {
