@@ -323,6 +323,7 @@ func TestDownloadSections(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer f.Close()
 	_, err = io.Copy(f, dr)
 	if err != nil {
 		t.Fatal(err)
