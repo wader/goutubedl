@@ -18,8 +18,22 @@ import (
 	"strings"
 )
 
-// Path to youtube-dl binary. Default look for "youtube-dl" in PATH.
-var Path = "youtube-dl"
+// Path to youtube-dl binary. If not set look for "youtube-dl" then "yt-dlp" in PATH.
+var Path = ""
+
+func ProbePath() string {
+	if Path != "" {
+		return Path
+	}
+
+	for _, n := range []string{"youtube-dl", "yt-dlp"} {
+		if p, err := exec.LookPath(n); err == nil {
+			return p
+		}
+	}
+
+	return "youtube-dl"
+}
 
 // Printer is something that can print
 type Printer interface {
@@ -223,7 +237,7 @@ type Options struct {
 // Version of youtube-dl.
 // Might be a good idea to call at start to assert that youtube-dl can be found.
 func Version(ctx context.Context) (string, error) {
-	cmd := exec.CommandContext(ctx, Path, "--version")
+	cmd := exec.CommandContext(ctx, ProbePath(), "--version")
 	versionBytes, cmdErr := cmd.Output()
 	if cmdErr != nil {
 		return "", cmdErr
@@ -275,7 +289,7 @@ func New(ctx context.Context, rawURL string, options Options) (result Result, er
 func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info, rawJSON []byte, err error) {
 	cmd := exec.CommandContext(
 		ctx,
-		Path,
+		ProbePath(),
 		// see comment below about ignoring errors for playlists
 		"--ignore-errors",
 		"--no-call-home",
@@ -503,7 +517,7 @@ func (result Result) DownloadWithOptions(ctx context.Context, options DownloadOp
 
 	cmd := exec.CommandContext(
 		ctx,
-		Path,
+		ProbePath(),
 		"--no-call-home",
 		"--no-cache-dir",
 		"--ignore-errors",
@@ -556,7 +570,7 @@ func (result Result) DownloadWithOptions(ctx context.Context, options DownloadOp
 	if result.Options.Downloader != "" {
 		cmd.Args = append(cmd.Args, "--downloader", result.Options.Downloader)
 	}
-	
+
 	if result.Options.DownloadSections != "" {
 		cmd.Args = append(cmd.Args, "--download-sections", result.Options.DownloadSections)
 	}
