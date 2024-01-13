@@ -21,11 +21,6 @@ import (
 	"github.com/wader/osleaktest"
 )
 
-func init() {
-	// we're using yt-dlp at the moment
-	goutubedl.Path = "yt-dlp"
-}
-
 const testVideoRawURL = "https://www.youtube.com/watch?v=C0DPdy98e4c"
 const playlistRawURL = "https://soundcloud.com/mattheis/sets/kindred-phenomena"
 const subtitlesTestVideoRawURL = "https://www.youtube.com/watch?v=QRS8MkLhQmM"
@@ -307,7 +302,6 @@ func TestDownloadSections(t *testing.T) {
 			DownloadSections: fmt.Sprintf("*0:0-0:%d", duration),
 		})
 
-	
 	if ydlResult.Options.DownloadSections != "*0:0-0:5" {
 		t.Errorf("failed to setup --download-sections")
 	}
