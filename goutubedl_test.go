@@ -135,7 +135,7 @@ func TestParseInfo(t *testing.T) {
 		expectedTitle string
 	}{
 		{"https://soundcloud.com/avalonemerson/avalon-emerson-live-at-printworks-london-march-2017", "Avalon Emerson Live at Printworks London 2017"},
-		{"https://www.infoq.com/presentations/Simple-Made-Easy", "Simple Made Easy"},
+		{"https://www.infoq.com/presentations/Simple-Made-Easy", "Simple Made Easy - InfoQ"},
 		{"https://www.youtube.com/watch?v=uVYWQJ5BB_w", "A Radiolab Producer on the Making of a Podcast"},
 	} {
 		t.Run(c.url, func(t *testing.T) {
