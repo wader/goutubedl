@@ -454,30 +454,31 @@ func infoFromURL(
 	}
 
 	// as we ignore errors for playlists some entries might show up as null
-	if options.Type == TypePlaylist {
+	//
+	// note: instead of doing full recursion, we assume entries in
+	// playlists and channels are at most 2 levels deep, and we just
+	// collect entries from both levels.
+	//
+	// the following cases have not been tested:
+	//
+	// - entries that are more than 2 levels deep (will be missed)
+	// - the ability to restrict entries to a single level (we include both levels)
+	if options.Type == TypePlaylist || options.Type == TypeChannel {
 		var filteredEntrise []Info
 		for _, e := range info.Entries {
 			if e.ID == "" {
 				continue
 			}
-			filteredEntrise = append(filteredEntrise, e)
-		}
-		info.Entries = filteredEntrise
-	}
-
-	// channels contain playlists, so recurse into them
-	if options.Type == TypeChannel {
-		var filteredEntrise []Info
-		for _, p := range info.Entries {
-			if p.Type != "playlist" {
+			if e.Type == "playlist" {
+				for _, ee := range e.Entries {
+					if ee.ID == "" {
+						continue
+					}
+					filteredEntrise = append(filteredEntrise, ee)
+				}
 				continue
 			}
-			for _, e := range p.Entries {
-				if e.ID == "" {
-					continue
-				}
-				filteredEntrise = append(filteredEntrise, e)
-			}
+			filteredEntrise = append(filteredEntrise, e)
 		}
 		info.Entries = filteredEntrise
 	}
