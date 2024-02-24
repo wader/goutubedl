@@ -466,9 +466,6 @@ func infoFromURL(
 	if options.Type == TypePlaylist || options.Type == TypeChannel {
 		var filteredEntrise []Info
 		for _, e := range info.Entries {
-			if e.ID == "" {
-				continue
-			}
 			if e.Type == "playlist" {
 				for _, ee := range e.Entries {
 					if ee.ID == "" {
@@ -477,8 +474,9 @@ func infoFromURL(
 					filteredEntrise = append(filteredEntrise, ee)
 				}
 				continue
+			} else if e.ID == "" {
+				filteredEntrise = append(filteredEntrise, e)
 			}
-			filteredEntrise = append(filteredEntrise, e)
 		}
 		info.Entries = filteredEntrise
 	}
