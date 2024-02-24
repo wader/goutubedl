@@ -524,7 +524,9 @@ func (result Result) DownloadWithOptions(
 	debugLog := result.Options.DebugLog
 
 	if !result.Options.noInfoDownload {
-		if (result.Info.Type == "playlist" || result.Info.Type == "multi_video") &&
+		if (result.Info.Type == "playlist" ||
+			result.Info.Type == "multi_video" ||
+			result.Info.Type == "channel") &&
 			options.PlaylistIndex == 0 {
 			return nil, fmt.Errorf(
 				"can't download a playlist when the playlist index options is not set",
