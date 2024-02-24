@@ -21,9 +21,12 @@ import (
 	"github.com/wader/osleaktest"
 )
 
-const testVideoRawURL = "https://www.youtube.com/watch?v=C0DPdy98e4c"
-const playlistRawURL = "https://soundcloud.com/mattheis/sets/kindred-phenomena"
-const subtitlesTestVideoRawURL = "https://www.youtube.com/watch?v=QRS8MkLhQmM"
+const (
+	testVideoRawURL          = "https://www.youtube.com/watch?v=C0DPdy98e4c"
+	playlistRawURL           = "https://soundcloud.com/mattheis/sets/kindred-phenomena"
+	channelRawURL            = "https://www.youtube.com/channel/UCHDm-DKoMyJxKVgwGmuTaQA"
+	subtitlesTestVideoRawURL = "https://www.youtube.com/watch?v=QRS8MkLhQmM"
+)
 
 func leakChecks(t *testing.T) func() {
 	leakFn := leaktest.Check(t)
@@ -135,7 +138,7 @@ func TestParseInfo(t *testing.T) {
 		expectedTitle string
 	}{
 		{"https://soundcloud.com/avalonemerson/avalon-emerson-live-at-printworks-london-march-2017", "Avalon Emerson Live at Printworks London 2017"},
-		{"https://www.infoq.com/presentations/Simple-Made-Easy", "Simple Made Easy"},
+		{"https://www.infoq.com/presentations/Simple-Made-Easy", "Simple Made Easy - InfoQ"},
 		{"https://www.youtube.com/watch?v=uVYWQJ5BB_w", "A Radiolab Producer on the Making of a Podcast"},
 	} {
 		t.Run(c.url, func(t *testing.T) {
@@ -212,6 +215,38 @@ func TestPlaylist(t *testing.T) {
 	}
 
 	expectedTitleOne := "A1 Mattheis - Herds"
+	if ydlResult.Info.Entries[0].Title != expectedTitleOne {
+		t.Errorf("expected title %q got %q", expectedTitleOne, ydlResult.Info.Entries[0].Title)
+	}
+}
+
+func TestChannel(t *testing.T) {
+	defer leakChecks(t)()
+
+	ydlResult, ydlResultErr := goutubedl.New(
+		context.Background(),
+		channelRawURL,
+		goutubedl.Options{
+			Type:              goutubedl.TypeChannel,
+			DownloadThumbnail: false,
+		},
+	)
+
+	if ydlResultErr != nil {
+		t.Errorf("failed to download: %s", ydlResultErr)
+	}
+
+	expectedTitle := "Simon Yapp"
+	if ydlResult.Info.Title != expectedTitle {
+		t.Errorf("expected title %q got %q", expectedTitle, ydlResult.Info.Title)
+	}
+
+	expectedEntries := 5
+	if len(ydlResult.Info.Entries) != expectedEntries {
+		t.Errorf("expected %d entries got %d", expectedEntries, len(ydlResult.Info.Entries))
+	}
+
+	expectedTitleOne := "#RNLI Shoreham #LifeBoat demo of launch."
 	if ydlResult.Info.Entries[0].Title != expectedTitleOne {
 		t.Errorf("expected title %q got %q", expectedTitleOne, ydlResult.Info.Entries[0].Title)
 	}
