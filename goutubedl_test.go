@@ -21,9 +21,12 @@ import (
 	"github.com/wader/osleaktest"
 )
 
-const testVideoRawURL = "https://www.youtube.com/watch?v=C0DPdy98e4c"
-const playlistRawURL = "https://soundcloud.com/mattheis/sets/kindred-phenomena"
-const subtitlesTestVideoRawURL = "https://www.youtube.com/watch?v=QRS8MkLhQmM"
+const (
+	testVideoRawURL          = "https://www.youtube.com/watch?v=C0DPdy98e4c"
+	playlistRawURL           = "https://soundcloud.com/mattheis/sets/kindred-phenomena"
+	channelRawURL            = "https://www.youtube.com/channel/UCHDm-DKoMyJxKVgwGmuTaQA"
+	subtitlesTestVideoRawURL = "https://www.youtube.com/watch?v=QRS8MkLhQmM"
+)
 
 func leakChecks(t *testing.T) func() {
 	leakFn := leaktest.Check(t)
