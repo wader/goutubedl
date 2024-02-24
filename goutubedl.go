@@ -474,7 +474,7 @@ func infoFromURL(
 					filteredEntrise = append(filteredEntrise, ee)
 				}
 				continue
-			} else if e.ID == "" {
+			} else if e.ID != "" {
 				filteredEntrise = append(filteredEntrise, e)
 			}
 		}
