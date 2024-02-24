@@ -217,6 +217,38 @@ func TestPlaylist(t *testing.T) {
 	}
 }
 
+func TestChannel(t *testing.T) {
+	defer leakChecks(t)()
+
+	ydlResult, ydlResultErr := goutubedl.New(
+		context.Background(),
+		channelRawURL,
+		goutubedl.Options{
+			Type:              goutubedl.TypeChannel,
+			DownloadThumbnail: false,
+		},
+	)
+
+	if ydlResultErr != nil {
+		t.Errorf("failed to download: %s", ydlResultErr)
+	}
+
+	expectedTitle := "Simon Yapp"
+	if ydlResult.Info.Title != expectedTitle {
+		t.Errorf("expected title %q got %q", expectedTitle, ydlResult.Info.Title)
+	}
+
+	expectedEntries := 5
+	if len(ydlResult.Info.Entries) != expectedEntries {
+		t.Errorf("expected %d entries got %d", expectedEntries, len(ydlResult.Info.Entries))
+	}
+
+	expectedTitleOne := "#RNLI Shoreham #LifeBoat demo of launch."
+	if ydlResult.Info.Entries[0].Title != expectedTitleOne {
+		t.Errorf("expected title %q got %q", expectedTitleOne, ydlResult.Info.Entries[0].Title)
+	}
+}
+
 func TestUnsupportedURL(t *testing.T) {
 	defer leaktest.Check(t)()
 

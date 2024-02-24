@@ -205,12 +205,15 @@ const (
 	TypeSingle
 	// TypePlaylist playlist with multiple tracks, files etc
 	TypePlaylist
+	// TypeChannel channel containing one or more playlists, which will be flattened
+	TypeChannel
 )
 
 var TypeFromString = map[string]Type{
 	"any":      TypeAny,
 	"single":   TypeSingle,
 	"playlist": TypePlaylist,
+	"channel":  TypeChannel,
 }
 
 // Options for New()
@@ -248,7 +251,12 @@ func Version(ctx context.Context) (string, error) {
 
 // Downloads given URL using the given options and filter (usually a format id or quality designator).
 // If filter is empty, then youtube-dl will use its default format selector.
-func Download(ctx context.Context, rawURL string, options Options, filter string) (*DownloadResult, error) {
+func Download(
+	ctx context.Context,
+	rawURL string,
+	options Options,
+	filter string,
+) (*DownloadResult, error) {
 	options.noInfoDownload = true
 	d, err := New(ctx, rawURL, options)
 	if err != nil {
@@ -286,7 +294,11 @@ func New(ctx context.Context, rawURL string, options Options) (result Result, er
 	}, nil
 }
 
-func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info, rawJSON []byte, err error) {
+func infoFromURL(
+	ctx context.Context,
+	rawURL string,
+	options Options,
+) (info Info, rawJSON []byte, err error) {
 	cmd := exec.CommandContext(
 		ctx,
 		ProbePath(),
@@ -309,7 +321,7 @@ func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info
 		cmd.Args = append(cmd.Args, "--downloader", options.Downloader)
 	}
 	switch options.Type {
-	case TypePlaylist:
+	case TypePlaylist, TypeChannel:
 		cmd.Args = append(cmd.Args, "--yes-playlist")
 
 		if options.PlaylistStart > 0 {
@@ -453,6 +465,23 @@ func infoFromURL(ctx context.Context, rawURL string, options Options) (info Info
 		info.Entries = filteredEntrise
 	}
 
+	// channels contain playlists, so recurse into them
+	if options.Type == TypeChannel {
+		var filteredEntrise []Info
+		for _, p := range info.Entries {
+			if p.Type != "playlist" {
+				continue
+			}
+			for _, e := range p.Entries {
+				if e.ID == "" {
+					continue
+				}
+				filteredEntrise = append(filteredEntrise, e)
+			}
+		}
+		info.Entries = filteredEntrise
+	}
+
 	return info, stdoutBuf.Bytes(), nil
 }
 
@@ -488,12 +517,18 @@ type DownloadOptions struct {
 	PlaylistIndex int
 }
 
-func (result Result) DownloadWithOptions(ctx context.Context, options DownloadOptions) (*DownloadResult, error) {
+func (result Result) DownloadWithOptions(
+	ctx context.Context,
+	options DownloadOptions,
+) (*DownloadResult, error) {
 	debugLog := result.Options.DebugLog
 
 	if !result.Options.noInfoDownload {
-		if (result.Info.Type == "playlist" || result.Info.Type == "multi_video") && options.PlaylistIndex == 0 {
-			return nil, fmt.Errorf("can't download a playlist when the playlist index options is not set")
+		if (result.Info.Type == "playlist" || result.Info.Type == "multi_video") &&
+			options.PlaylistIndex == 0 {
+			return nil, fmt.Errorf(
+				"can't download a playlist when the playlist index options is not set",
+			)
 		}
 	}
 
