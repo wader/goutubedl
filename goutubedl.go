@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -129,7 +128,7 @@ type Info struct {
 	WebpageURL  string `json:"webpage_url"`
 	Description string `json:"description"`
 	Thumbnail   string `json:"thumbnail"`
-	// not unmarshalled, populated from image thumbnail file
+	// don't unmarshal, populated from image thumbnail file
 	ThumbnailBytes []byte      `json:"-"`
 	Thumbnails     []Thumbnail `json:"thumbnails"`
 
@@ -180,7 +179,7 @@ type Subtitle struct {
 	URL      string `json:"url"`
 	Ext      string `json:"ext"`
 	Language string `json:"-"`
-	// not unmarshalled, populated from subtitle file
+	// don't unmarshal, populated from subtitle file
 	Bytes []byte `json:"-"`
 }
 
@@ -346,15 +345,15 @@ func infoFromURL(
 	case TypeAny:
 		break
 	default:
-		return Info{}, nil, fmt.Errorf("Unhandle options type value: %d", options.Type)
+		return Info{}, nil, fmt.Errorf("unhandled options type value: %d", options.Type)
 	}
 
-	tempPath, _ := ioutil.TempDir("", "ydls")
+	tempPath, _ := os.MkdirTemp("", "ydls")
 	defer os.RemoveAll(tempPath)
 
 	stdoutBuf := &bytes.Buffer{}
 	stderrBuf := &bytes.Buffer{}
-	stderrWriter := ioutil.Discard
+	stderrWriter := io.Discard
 	if options.StderrFn != nil {
 		stderrWriter = options.StderrFn(cmd)
 	}
@@ -428,7 +427,7 @@ func infoFromURL(
 	if options.DownloadThumbnail && info.Thumbnail != "" {
 		resp, respErr := get(info.Thumbnail)
 		if respErr == nil {
-			buf, _ := ioutil.ReadAll(resp.Body)
+			buf, _ := io.ReadAll(resp.Body)
 			resp.Body.Close()
 			info.ThumbnailBytes = buf
 		}
@@ -445,7 +444,7 @@ func infoFromURL(
 			for i, subtitle := range subtitles {
 				resp, respErr := get(subtitle.URL)
 				if respErr == nil {
-					buf, _ := ioutil.ReadAll(resp.Body)
+					buf, _ := io.ReadAll(resp.Body)
 					resp.Body.Close()
 					subtitles[i].Bytes = buf
 				}
@@ -464,21 +463,21 @@ func infoFromURL(
 	// - entries that are more than 2 levels deep (will be missed)
 	// - the ability to restrict entries to a single level (we include both levels)
 	if options.Type == TypePlaylist || options.Type == TypeChannel {
-		var filteredEntrise []Info
+		var filteredEntries []Info
 		for _, e := range info.Entries {
 			if e.Type == "playlist" {
 				for _, ee := range e.Entries {
 					if ee.ID == "" {
 						continue
 					}
-					filteredEntrise = append(filteredEntrise, ee)
+					filteredEntries = append(filteredEntries, ee)
 				}
 				continue
 			} else if e.ID != "" {
-				filteredEntrise = append(filteredEntrise, e)
+				filteredEntries = append(filteredEntries, e)
 			}
 		}
-		info.Entries = filteredEntrise
+		info.Entries = filteredEntries
 	}
 
 	return info, stdoutBuf.Bytes(), nil
@@ -533,7 +532,7 @@ func (result Result) DownloadWithOptions(
 		}
 	}
 
-	tempPath, tempErr := ioutil.TempDir("", "ydls")
+	tempPath, tempErr := os.MkdirTemp("", "ydls")
 	if tempErr != nil {
 		return nil, tempErr
 	}
@@ -541,7 +540,7 @@ func (result Result) DownloadWithOptions(
 	var jsonTempPath string
 	if !result.Options.noInfoDownload {
 		jsonTempPath = path.Join(tempPath, "info.json")
-		if err := ioutil.WriteFile(jsonTempPath, result.RawJSON, 0600); err != nil {
+		if err := os.WriteFile(jsonTempPath, result.RawJSON, 0600); err != nil {
 			os.RemoveAll(tempPath)
 			return nil, err
 		}
@@ -627,7 +626,7 @@ func (result Result) DownloadWithOptions(
 	var w io.WriteCloser
 	dr.reader, w = io.Pipe()
 
-	stderrWriter := ioutil.Discard
+	stderrWriter := io.Discard
 	if result.Options.StderrFn != nil {
 		stderrWriter = result.Options.StderrFn(cmd)
 	}
