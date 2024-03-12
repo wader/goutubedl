@@ -380,7 +380,7 @@ func TestDownloadSections(t *testing.T) {
 	}
 	seconds := int(gotDuration)
 	if seconds != duration {
-		t.Fatalf("didnot get expected duration of %d, but got %d", duration, seconds)
+		t.Fatalf("did not get expected duration of %d, but got %d", duration, seconds)
 	}
 	dr.Close()
 }
