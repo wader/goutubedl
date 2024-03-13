@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/exec"
 
 	"github.com/wader/goutubedl"
 )
@@ -24,7 +25,11 @@ func main() {
 	result, err := goutubedl.New(
 		context.Background(),
 		flag.Arg(0),
-		goutubedl.Options{Type: optType, DebugLog: log.Default()},
+		goutubedl.Options{
+			Type:     optType,
+			DebugLog: log.Default(),
+			StderrFn: func(cmd *exec.Cmd) io.Writer { return os.Stderr },
+		},
 	)
 	if err != nil {
 		log.Fatal(err)
