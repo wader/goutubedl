@@ -552,3 +552,29 @@ func TestDownloadPlaylistEntry(t *testing.T) {
 		t.Error("not the same content between the playlist index entry and the direct link entry")
 	}
 }
+
+func TestFormatDownloadError(t *testing.T) {
+	defer leaktest.Check(t)()
+
+	ydl, ydlErr := goutubedl.New(
+		context.Background(),
+		"https://www.reddit.com/r/newsbabes/s/92rflI0EB0",
+		goutubedl.Options{},
+	)
+
+	if ydlErr != nil {
+		// reddit seems to not like github action hosts
+		if strings.Contains(ydlErr.Error(), "HTTPError 403: Blocked") {
+			t.Skip()
+		}
+		t.Error(ydlErr)
+	}
+
+	// no pre-muxed audio/video format available
+	_, ytDlErr := ydl.Download(context.Background(), "best")
+	expectedErr := "Requested format is not available"
+	if ydlErr != nil && !strings.Contains(ytDlErr.Error(), expectedErr) {
+		t.Errorf("expected error prefix %q got %q", expectedErr, ytDlErr.Error())
+
+	}
+}

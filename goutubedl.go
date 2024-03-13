@@ -623,15 +623,17 @@ func (result Result) DownloadWithOptions(
 	}
 
 	cmd.Dir = tempPath
-	var w io.WriteCloser
-	dr.reader, w = io.Pipe()
-
-	stderrWriter := io.Discard
+	var stdoutW io.WriteCloser
+	var stderrW io.WriteCloser
+	var stderrR io.Reader
+	dr.reader, stdoutW = io.Pipe()
+	stderrR, stderrW = io.Pipe()
+	optStderrWriter := io.Discard
 	if result.Options.StderrFn != nil {
-		stderrWriter = result.Options.StderrFn(cmd)
+		optStderrWriter = result.Options.StderrFn(cmd)
 	}
-	cmd.Stdout = w
-	cmd.Stderr = stderrWriter
+	cmd.Stdout = stdoutW
+	cmd.Stderr = io.MultiWriter(optStderrWriter, stderrW)
 
 	debugLog.Print("cmd", " ", cmd.Args)
 	if err := cmd.Start(); err != nil {
@@ -641,12 +643,32 @@ func (result Result) DownloadWithOptions(
 
 	go func() {
 		_ = cmd.Wait()
-		w.Close()
+		stdoutW.Close()
+		stderrW.Close()
 		os.RemoveAll(tempPath)
 		close(dr.waitCh)
 	}()
 
-	return dr, nil
+	// blocks return until yt-dlp is downloading or has errored
+	ytErrCh := make(chan error)
+	go func() {
+		stderrLineScanner := bufio.NewScanner(stderrR)
+		for stderrLineScanner.Scan() {
+			const downloadPrefix = "[download]"
+			const errorPrefix = "ERROR: "
+			line := stderrLineScanner.Text()
+			if strings.HasPrefix(line, downloadPrefix) {
+				break
+			} else if strings.HasPrefix(line, errorPrefix) {
+				ytErrCh <- errors.New(line[len(errorPrefix):])
+				return
+			}
+		}
+		ytErrCh <- nil
+		_, _ = io.Copy(io.Discard, stderrR)
+	}()
+
+	return dr, <-ytErrCh
 }
 
 func (dr *DownloadResult) Read(p []byte) (n int, err error) {
