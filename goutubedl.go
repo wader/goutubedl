@@ -217,19 +217,20 @@ var TypeFromString = map[string]Type{
 
 // Options for New()
 type Options struct {
-	Type              Type
-	PlaylistStart     uint   // --playlist-start
-	PlaylistEnd       uint   // --playlist-end
-	Downloader        string // --downloader
-	DownloadThumbnail bool
-	DownloadSubtitles bool
-	DownloadSections  string // --download-sections
-	ProxyUrl          string // --proxy URL  http://host:port or socks5://host:port
-	DebugLog          Printer
-	StderrFn          func(cmd *exec.Cmd) io.Writer // if not nil, function to get Writer for stderr
-	HTTPClient        *http.Client                  // Client for download thumbnail and subtitles (nil use http.DefaultClient)
-	MergeOutputFormat string                        // --merge-output-format
-	SortingFormat     string                        // --format-sort
+	Type               Type
+	PlaylistStart      uint   // --playlist-start
+	PlaylistEnd        uint   // --playlist-end
+	Downloader         string // --downloader
+	DownloadThumbnail  bool
+	DownloadSubtitles  bool
+	DownloadSections   string // --download-sections
+	ProxyUrl           string // --proxy URL  http://host:port or socks5://host:port
+	CookiesFromBrowser string // --cookies-from-browser BROWSER[:FOLDER]
+	DebugLog           Printer
+	StderrFn           func(cmd *exec.Cmd) io.Writer // if not nil, function to get Writer for stderr
+	HTTPClient         *http.Client                  // Client for download thumbnail and subtitles (nil use http.DefaultClient)
+	MergeOutputFormat  string                        // --merge-output-format
+	SortingFormat      string                        // --format-sort
 
 	// Set to true if you don't want to use the result.Info structure after the goutubedl.New() call,
 	// so the given URL will be downloaded in a single pass in the DownloadResult.Download() call.
@@ -319,6 +320,11 @@ func infoFromURL(
 	if options.Downloader != "" {
 		cmd.Args = append(cmd.Args, "--downloader", options.Downloader)
 	}
+
+	if options.CookiesFromBrowser != "" {
+		cmd.Args = append(cmd.Args, "--cookies-from-browser", options.CookiesFromBrowser)
+	}
+
 	switch options.Type {
 	case TypePlaylist, TypeChannel:
 		cmd.Args = append(cmd.Args, "--yes-playlist")
@@ -608,6 +614,10 @@ func (result Result) DownloadWithOptions(
 
 	if result.Options.DownloadSections != "" {
 		cmd.Args = append(cmd.Args, "--download-sections", result.Options.DownloadSections)
+	}
+
+	if result.Options.CookiesFromBrowser != "" {
+		cmd.Args = append(cmd.Args, "--cookies-from-browser", result.Options.CookiesFromBrowser)
 	}
 
 	if result.Options.MergeOutputFormat != "" {
