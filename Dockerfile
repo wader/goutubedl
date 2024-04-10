@@ -3,7 +3,7 @@
 ARG GOLANG_VERSION=1.22.2
 # bump: yt-dlp /YT_DLP=([\d.-]+)/ https://github.com/yt-dlp/yt-dlp.git|/^\d/|sort
 # bump: yt-dlp link "Release notes" https://github.com/yt-dlp/yt-dlp/releases/tag/$LATEST
-ARG YT_DLP=2024.03.10
+ARG YT_DLP=2024.04.09
 
 FROM golang:$GOLANG_VERSION AS base
 ARG YT_DLP
