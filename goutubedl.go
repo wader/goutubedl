@@ -304,13 +304,17 @@ func infoFromURL(
 		ProbePath(),
 		// see comment below about ignoring errors for playlists
 		"--ignore-errors",
+		// TODO: deprecated in yt-dlp?
 		"--no-call-home",
-		"--no-cache-dir",
-		"--skip-download",
+		// use safer output filenmaes
+		// TODO: needed?
 		"--restrict-filenames",
-		// provide URL via stdin for security, youtube-dl has some run command args
+		// use .netrc authentication data
+		"--netrc",
+		// provide url via stdin for security, youtube-dl has some run command args
 		"--batch-file", "-",
-		"-J",
+		// dump info json
+		"--dump-single-json",
 	)
 
 	if options.ProxyUrl != "" {
@@ -559,12 +563,19 @@ func (result Result) DownloadWithOptions(
 	cmd := exec.CommandContext(
 		ctx,
 		ProbePath(),
-		"--no-call-home",
-		"--no-cache-dir",
+		// see comment below about ignoring errors for playlists
 		"--ignore-errors",
+		// TODO: deprecated in yt-dlp?
+		"--no-call-home",
+		// use non-fancy progress bar
 		"--newline",
+		// use safer output filenmaes
+		// TODO: needed?
 		"--restrict-filenames",
-		"-o", "-",
+		// use .netrc authentication data
+		"--netrc",
+		// write to stdout
+		"--output", "-",
 	)
 
 	if result.Options.noInfoDownload {

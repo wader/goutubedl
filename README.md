@@ -53,6 +53,16 @@ func main() {
 See [goutubedl cmd tool](cmd/goutubedl/main.go) or [ydls](https://github.com/wader/ydls)
 for usage examples.
 
+### Default options and cache
+
+#### .netrc
+
+goutubedl by default uses `--netrc` to use `~/.netrc` authentication data.
+
+#### Cache directory
+
+yt-dlp stores various extractor session data to speed up things in `${XDG_CACHE_HOME}/yt-dlp` (usually `~/.cache/yt-dlp`). You might want to preverse this directory if your running things in ephemeral conatiners etc.
+
 ### Development
 
 ```sh
