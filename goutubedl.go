@@ -225,7 +225,7 @@ type Options struct {
 	DownloadSubtitles  bool
 	DownloadSections   string // --download-sections
 	ProxyUrl           string // --proxy URL  http://host:port or socks5://host:port
-	UseIPV4            bool
+	UseIPV4            bool   // -4 Make all connections via IPv4
 	CookiesFromBrowser string // --cookies-from-browser BROWSER[:FOLDER]
 	DebugLog           Printer
 	StderrFn           func(cmd *exec.Cmd) io.Writer // if not nil, function to get Writer for stderr
@@ -528,6 +528,9 @@ type DownloadOptions struct {
 	// The index of the entry to download from the playlist that would be
 	// passed to youtube-dl via --playlist-items. The index value starts at 1
 	PlaylistIndex int
+
+	// -4 Make all connections via IPv4
+	UseIPV4 bool		
 }
 
 func (result Result) DownloadWithOptions(
@@ -609,7 +612,10 @@ func (result Result) DownloadWithOptions(
 	} else {
 		cmd.Args = append(cmd.Args, "--load-info", jsonTempPath)
 	}
-
+	//Force IPV4 Usage
+	if options.UseIPV4 {
+		cmd.Args = append(cmd.Args, "-4")
+	}
 	// don't need to specify if direct as there is only one
 	// also seems to be issues when using filter with generic extractor
 	if !result.Info.Direct && options.Filter != "" {
