@@ -225,6 +225,7 @@ type Options struct {
 	DownloadSubtitles  bool
 	DownloadSections   string // --download-sections
 	ProxyUrl           string // --proxy URL  http://host:port or socks5://host:port
+	UseIPV4            bool
 	CookiesFromBrowser string // --cookies-from-browser BROWSER[:FOLDER]
 	DebugLog           Printer
 	StderrFn           func(cmd *exec.Cmd) io.Writer // if not nil, function to get Writer for stderr
@@ -321,6 +322,10 @@ func infoFromURL(
 		cmd.Args = append(cmd.Args, "--proxy", options.ProxyUrl)
 	}
 
+	if options.UseIPV4 {
+		cmd.Args = append(cmd.Args, "-4")
+	}
+	
 	if options.Downloader != "" {
 		cmd.Args = append(cmd.Args, "--downloader", options.Downloader)
 	}
@@ -328,7 +333,7 @@ func infoFromURL(
 	if options.CookiesFromBrowser != "" {
 		cmd.Args = append(cmd.Args, "--cookies-from-browser", options.CookiesFromBrowser)
 	}
-
+	
 	switch options.Type {
 	case TypePlaylist, TypeChannel:
 		cmd.Args = append(cmd.Args, "--yes-playlist")
