@@ -325,7 +325,7 @@ func infoFromURL(
 	if options.UseIPV4 {
 		cmd.Args = append(cmd.Args, "-4")
 	}
-	
+
 	if options.Downloader != "" {
 		cmd.Args = append(cmd.Args, "--downloader", options.Downloader)
 	}
@@ -333,7 +333,7 @@ func infoFromURL(
 	if options.CookiesFromBrowser != "" {
 		cmd.Args = append(cmd.Args, "--cookies-from-browser", options.CookiesFromBrowser)
 	}
-	
+
 	switch options.Type {
 	case TypePlaylist, TypeChannel:
 		cmd.Args = append(cmd.Args, "--yes-playlist")
@@ -527,7 +527,7 @@ type DownloadOptions struct {
 	Filter string
 	// The index of the entry to download from the playlist that would be
 	// passed to youtube-dl via --playlist-items. The index value starts at 1
-	PlaylistIndex int	
+	PlaylistIndex int
 }
 
 func (result Result) DownloadWithOptions(
@@ -609,7 +609,7 @@ func (result Result) DownloadWithOptions(
 	} else {
 		cmd.Args = append(cmd.Args, "--load-info", jsonTempPath)
 	}
-	//Force IPV4 Usage
+	// force IPV4 Usage
 	if result.Options.UseIPV4 {
 		cmd.Args = append(cmd.Args, "-4")
 	}
