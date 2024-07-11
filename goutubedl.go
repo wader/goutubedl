@@ -224,6 +224,7 @@ type Options struct {
 	DownloadThumbnail  bool
 	DownloadSubtitles  bool
 	DownloadSections   string // --download-sections
+	DownloadAudioOnly  bool   // -x Download audio only from video
 	ProxyUrl           string // --proxy URL  http://host:port or socks5://host:port
 	UseIPV4            bool   // -4 Make all connections via IPv4
 	CookiesFromBrowser string // --cookies-from-browser BROWSER[:FOLDER]
@@ -638,7 +639,9 @@ func (result Result) DownloadWithOptions(
 	if result.Options.CookiesFromBrowser != "" {
 		cmd.Args = append(cmd.Args, "--cookies-from-browser", result.Options.CookiesFromBrowser)
 	}
-
+	if result.Options.DownloadAudioOnly {
+		cmd.Args = append(cmd.Args, "-x")
+	}
 	if result.Options.MergeOutputFormat != "" {
 		cmd.Args = append(cmd.Args,
 			"--merge-output-format", result.Options.MergeOutputFormat,
