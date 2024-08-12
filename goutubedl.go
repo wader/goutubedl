@@ -639,9 +639,11 @@ func (result Result) DownloadWithOptions(
 	if result.Options.CookiesFromBrowser != "" {
 		cmd.Args = append(cmd.Args, "--cookies-from-browser", result.Options.CookiesFromBrowser)
 	}
+
 	if result.Options.DownloadAudioOnly {
 		cmd.Args = append(cmd.Args, "-x")
 	}
+	cmd.Args = append(cmd.Args, "--audio-format", "mp3")
 	if result.Options.MergeOutputFormat != "" {
 		cmd.Args = append(cmd.Args,
 			"--merge-output-format", result.Options.MergeOutputFormat,
