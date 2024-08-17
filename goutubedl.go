@@ -226,6 +226,7 @@ type Options struct {
 	DownloadSections   string // --download-sections
 	ProxyUrl           string // --proxy URL  http://host:port or socks5://host:port
 	UseIPV4            bool   // -4 Make all connections via IPv4
+	Cookies            string // --cookies FILE
 	CookiesFromBrowser string // --cookies-from-browser BROWSER[:FOLDER]
 	DebugLog           Printer
 	StderrFn           func(cmd *exec.Cmd) io.Writer // if not nil, function to get Writer for stderr
@@ -328,6 +329,10 @@ func infoFromURL(
 
 	if options.Downloader != "" {
 		cmd.Args = append(cmd.Args, "--downloader", options.Downloader)
+	}
+
+	if options.Cookies != "" {
+		cmd.Args = append(cmd.Args, "--cookies", options.Cookies)
 	}
 
 	if options.CookiesFromBrowser != "" {
