@@ -217,13 +217,14 @@ var TypeFromString = map[string]Type{
 
 // Options for New()
 type Options struct {
-	Type               Type
-	PlaylistStart      uint   // --playlist-start
-	PlaylistEnd        uint   // --playlist-end
-	Downloader         string // --downloader
-	DownloadThumbnail  bool
-	DownloadSubtitles  bool
-	DownloadSections   string // --download-sections
+	Type              Type
+	PlaylistStart     uint   // --playlist-start
+	PlaylistEnd       uint   // --playlist-end
+	Downloader        string // --downloader
+	DownloadThumbnail bool
+	DownloadSubtitles bool
+	DownloadSections  string // --download-sections
+
 	ProxyUrl           string // --proxy URL  http://host:port or socks5://host:port
 	UseIPV4            bool   // -4 Make all connections via IPv4
 	Cookies            string // --cookies FILE
@@ -527,6 +528,8 @@ func (result Result) Download(ctx context.Context, filter string) (*DownloadResu
 }
 
 type DownloadOptions struct {
+	AudioFormats      string // --audio-formats Download audio using formats (best, aac, alac, flac, m4a, mp3, opus, vorbis, wav)
+	DownloadAudioOnly bool   // -x Download audio only from video
 	// Download format matched by filter (usually a format id or quality designator).
 	// If filter is empty, then youtube-dl will use its default format selector.
 	Filter string
@@ -626,6 +629,14 @@ func (result Result) DownloadWithOptions(
 
 	if options.PlaylistIndex > 0 {
 		cmd.Args = append(cmd.Args, "--playlist-items", fmt.Sprint(options.PlaylistIndex))
+	}
+
+	if options.DownloadAudioOnly {
+		cmd.Args = append(cmd.Args, "-x")
+	}
+
+	if options.AudioFormats != "" {
+		cmd.Args = append(cmd.Args, "--audio-format", options.AudioFormats)
 	}
 
 	if result.Options.ProxyUrl != "" {
