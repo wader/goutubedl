@@ -644,10 +644,6 @@ func (result Result) DownloadWithOptions(
 		cmd.Args = append(cmd.Args, "--audio-format", options.AudioFormats)
 	}
 
-	if result.Options.Impersonate != "" {
-		cmd.Args = append(cmd.Args, "--impersonate", result.Options.Impersonate)
-	}
-
 	if result.Options.ProxyUrl != "" {
 		cmd.Args = append(cmd.Args, "--proxy", result.Options.ProxyUrl)
 	}
