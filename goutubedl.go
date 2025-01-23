@@ -220,6 +220,7 @@ type Options struct {
 	Type              Type
 	PlaylistStart     uint   // --playlist-start
 	PlaylistEnd       uint   // --playlist-end
+	FlatPlaylist      bool   // --flat-playlist, faster fetching but with less video info for playlists
 	Downloader        string // --downloader
 	DownloadThumbnail bool
 	DownloadSubtitles bool
@@ -358,6 +359,9 @@ func infoFromURL(
 			cmd.Args = append(cmd.Args,
 				"--playlist-end", strconv.Itoa(int(options.PlaylistEnd)),
 			)
+		}
+		if options.FlatPlaylist {
+			cmd.Args = append(cmd.Args, "--flat-playlist")
 		}
 	case TypeSingle:
 		if options.DownloadSubtitles {
