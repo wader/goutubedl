@@ -453,7 +453,6 @@ func infoFromURL(
 		return c.Do(r)
 	}
 
-	// TODO: use headers from youtube-dl info for thumbnail and subtitle download?
 	if options.DownloadThumbnail && info.Thumbnail != "" {
 		resp, respErr := get(info.Thumbnail)
 		if respErr == nil {
