@@ -225,6 +225,7 @@ type Options struct {
 	DownloadThumbnail bool
 	DownloadSubtitles bool
 	DownloadSections  string // --download-sections
+	Referer           string // --referer
 	Impersonate       string // --impersonate
 
 	ProxyUrl           string // --proxy URL  http://host:port or socks5://host:port
@@ -332,6 +333,10 @@ func infoFromURL(
 
 	if options.Downloader != "" {
 		cmd.Args = append(cmd.Args, "--downloader", options.Downloader)
+	}
+
+	if options.Referer != "" {
+		cmd.Args = append(cmd.Args, "--referer", options.Referer)
 	}
 
 	if options.Impersonate != "" {
