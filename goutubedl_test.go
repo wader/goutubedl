@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	testVideoRawURL          = "https://vimeo.com/454525548"
+	testVideoRawURL          = "https://media.ccc.de/v/blinkencount"
 	playlistRawURL           = "https://soundcloud.com/mattheis/sets/kindred-phenomena"
 	channelRawURL            = "https://www.youtube.com/channel/UCHDm-DKoMyJxKVgwGmuTaQA"
 	subtitlesTestVideoRawURL = "https://www.youtube.com/watch?v=QRS8MkLhQmM"
@@ -139,7 +139,7 @@ func TestParseInfo(t *testing.T) {
 	}{
 		{"https://soundcloud.com/avalonemerson/avalon-emerson-live-at-printworks-london-march-2017", "Avalon Emerson Live at Printworks London 2017"},
 		{"https://www.infoq.com/presentations/Simple-Made-Easy", "Simple Made Easy - InfoQ"},
-		{"https://vimeo.com/454525548", "Sample Video - 3 minutemp4.mp4"},
+		{"https://media.ccc.de/v/blinkencount", "Blinkencount"},
 	} {
 		t.Run(c.url, func(t *testing.T) {
 			defer leakChecks(t)()
@@ -338,7 +338,7 @@ func TestDownloadSections(t *testing.T) {
 
 	ydlResult, ydlResultErr := goutubedl.New(
 		context.Background(),
-		"https://vimeo.com/454525548",
+		"https://media.ccc.de/v/blinkencount",
 		goutubedl.Options{
 			DownloadSections: fmt.Sprintf("*0:0-0:%d", duration),
 		})
