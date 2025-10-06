@@ -7,12 +7,12 @@ Currently only tested and developed using yt-dlp.
 API documentation can be found at [godoc.org](https://pkg.go.dev/github.com/wader/goutubedl?tab=doc).
 
 See [yt-dlp documentation](https://github.com/yt-dlp/yt-dlp) for how to
-install and what is recommended to install in addition to yt-dl.
+install and what is recommended to install in addition to yt-dlp.
 
 goutubedl default uses `PATH` to find `youtube-dl` or `yt-dlp` (in that order) but can be configured with the
 `goutubedl.Path` variable.
 
-Due to the nature of and frequent updates of yt-dl only the latest version is tested.
+Due to the nature of and frequent updates of yt-dlp only the latest version is tested.
 But it seems to work well with older versions also.
 
 ### Usage
